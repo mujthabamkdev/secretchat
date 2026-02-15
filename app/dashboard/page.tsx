@@ -38,7 +38,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                         <div className={styles.chevron}>→</div>
                     </Link>
                 ))}
-                {users.length === 0 && <p style={{ textAlign: 'center', py: 40, color: '#666' }}>No users found.</p>}
+                {users.length === 0 && <p style={{ textAlign: 'center', padding: '40px 0', color: '#666' }}>No users found.</p>}
             </div>
         </div>
     );
