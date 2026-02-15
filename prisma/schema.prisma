@@ -1,14 +1,69 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  name      String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  sentRequests     FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
+  
+  callSessionsAsParticipant1 CallSession[] @relation("Participant1")
+  callSessionsAsParticipant2 CallSession[] @relation("Participant2")
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model FriendRequest {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("SentRequests", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+model CallSession {
+  id             String      @id @default(cuid())
+  participant1Id String
+  participant2Id String
+  startedAt      DateTime    @default(now())
+  endedAt        DateTime?
+  
+  participant1 User @relation("Participant1", fields: [participant1Id], references: [id])
+  participant2 User @relation("Participant2", fields: [participant2Id], references: [id])
+
+  frames CallFrame[]
+}
+
+model CallFrame {
+  id        String   @id @default(cuid())
+  sessionId String
+  imageUrl  String   // URL from Vercel Blob
+  timestamp DateTime @default(now())
+
+  session CallSession @relation(fields: [sessionId], references: [id])
 }

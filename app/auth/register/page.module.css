@@ -1,0 +1,172 @@
+.container {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ── Step Indicator ── */
+.steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 32px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.35;
+    transition: all 0.3s ease;
+}
+
+.stepActive {
+    opacity: 1;
+}
+
+.stepDone {
+    opacity: 0.7;
+}
+
+.stepNum {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.stepActive .stepNum {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+}
+
+.stepDone .stepNum {
+    background: var(--success);
+    border-color: transparent;
+    color: white;
+}
+
+.stepLabel {
+    font-size: 11px;
+    font-weight: 500;
+    color: #888;
+}
+
+.stepLine {
+    width: 40px;
+    height: 2px;
+    background: var(--border);
+    margin: 0 8px;
+    margin-bottom: 18px;
+}
+
+/* ── Form ── */
+.form {
+    animation: slideIn 0.35s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    background: linear-gradient(to right, #fff, #a5a5a5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+}
+
+.subtitle {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 24px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.subtitle strong {
+    color: var(--primary);
+    -webkit-text-fill-color: var(--primary);
+}
+
+/* ── OTP Input ── */
+.otpInput {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 12px;
+    padding: 16px;
+    font-family: 'Courier New', monospace;
+}
+
+/* ── Resend Button ── */
+.resend {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 12px;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+}
+
+.resend:disabled {
+    color: #555;
+    cursor: not-allowed;
+}
+
+/* ── Error ── */
+.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    padding: 10px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ── Footer ── */
+.footer {
+    text-align: center;
+    margin-top: 24px;
+    color: #666;
+    font-size: 14px;
+}
+
+.link {
+    color: var(--primary);
+    font-weight: 500;
+}
