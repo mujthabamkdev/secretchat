@@ -216,3 +216,109 @@
     transform: scale(1.05);
     box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
 }
+
+/* ═══════════════════════════════════════════════
+   Connecting / Calling Screen
+   ═══════════════════════════════════════════════ */
+
+.connectingScreen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+
+/* Ripple container — positions the avatar + animated rings */
+.connectingRipple {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+/* Animated ripple rings */
+.ripple1,
+.ripple2,
+.ripple3 {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.4);
+    animation: rippleExpand 2.4s ease-out infinite;
+}
+
+.ripple2 {
+    animation-delay: 0.8s;
+}
+
+.ripple3 {
+    animation-delay: 1.6s;
+}
+
+@keyframes rippleExpand {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+/* Avatar in the center of the ripple */
+.connectingAvatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(99, 102, 241, 0.6);
+    background: #1a1a1a;
+    z-index: 2;
+    animation: avatarPulse 2s ease-in-out infinite;
+}
+
+.connectingAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@keyframes avatarPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 30px 10px rgba(99, 102, 241, 0.2);
+    }
+}
+
+.connectingName {
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.connectingStatus {
+    font-size: 16px;
+    color: #888;
+    font-weight: 500;
+    min-width: 100px;
+    text-align: center;
+}
+
+.connectingHint {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+}
