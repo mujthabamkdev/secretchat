@@ -53,7 +53,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
             <div className="card" style={{ marginTop: '32px' }}>
                 <h3 className="heading" style={{ fontSize: '1rem' }}>About</h3>
-                <p className="subheading" style={{ marginBottom: 0 }}>This is a private profile. Start a session to connect securely.</p>
+                <p className="subheading" style={{ marginBottom: 0 }}>{user.bio || 'This is a private profile. Start a session to connect securely.'}</p>
             </div>
         </div>
     );
