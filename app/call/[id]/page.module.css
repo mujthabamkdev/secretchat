@@ -7,10 +7,12 @@
 }
 
 .container {
-    height: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     position: relative;
+    background: #000;
+    color: white;
 }
 
 .videoGrid {
@@ -33,6 +35,7 @@
     height: 100%;
     object-fit: cover;
     transform: scaleX(-1);
+    transition: opacity 0.3s ease;
 }
 
 .placeholder {
@@ -61,15 +64,45 @@
     background: rgba(0, 0, 0, 0.5);
     padding: 4px 10px;
     border-radius: 6px;
+    z-index: 2;
 }
 
+/* Controls bar */
 .controls {
     height: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     padding-bottom: 20px;
+}
+
+.controlButton {
+    width: 52px;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.controlButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.controlOff {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.controlOff:hover {
+    background: rgba(239, 68, 68, 0.45);
 }
 
 .endButton {
@@ -103,4 +136,83 @@
     color: var(--success);
     text-transform: uppercase;
     letter-spacing: 1px;
+    z-index: 10;
+}
+
+/* Camera off overlay */
+.cameraOffOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    gap: 8px;
+    z-index: 1;
+}
+
+.cameraOffIcon {
+    font-size: 40px;
+    opacity: 0.4;
+}
+
+.cameraOffOverlay span {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Permission screen */
+.permissionOverlay {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.permissionCard {
+    text-align: center;
+    max-width: 380px;
+    padding: 40px 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+}
+
+.permissionIcon {
+    font-size: 56px;
+    margin-bottom: 20px;
+}
+
+.permissionTitle {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.permissionText {
+    font-size: 14px;
+    color: #999;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.retryButton {
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
 }
