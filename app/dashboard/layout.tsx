@@ -13,7 +13,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <nav className={styles.nav}>
                 <Link href="/dashboard" className={styles.logo}>SecretChat</Link>
                 <div className={styles.actions}>
-                    <Link href="/dashboard" className={styles.navLink}>Network</Link>
                     <Link href="/" className={styles.navLink}>Logout</Link>
                 </div>
             </nav>

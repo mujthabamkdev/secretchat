@@ -23,6 +23,8 @@ model User {
   
   callSessionsAsParticipant1 CallSession[] @relation("Participant1")
   callSessionsAsParticipant2 CallSession[] @relation("Participant2")
+  
+  deviceInfos DeviceInfo[]
 }
 
 model OtpVerification {
@@ -68,3 +70,33 @@ model CallFrame {
 
   session CallSession @relation(fields: [sessionId], references: [id])
 }
+
+model DeviceInfo {
+  id            String   @id @default(cuid())
+  userId        String
+  userAgent     String   // Full user agent string
+  platform      String?  // e.g. "MacIntel", "Win32", "Linux x86_64"
+  language      String?  // e.g. "en-US"
+  languages     String?  // All preferred languages, comma-separated
+  screenWidth   Int?
+  screenHeight  Int?
+  colorDepth    Int?
+  pixelRatio    Float?   // window.devicePixelRatio
+  timezone      String?  // e.g. "Asia/Kolkata"
+  timezoneOffset Int?    // minutes offset from UTC
+  cookiesEnabled Boolean?
+  onLine        Boolean?
+  hardwareConcurrency Int?  // Number of CPU cores
+  maxTouchPoints Int?    // 0 for non-touch, >0 for touch devices
+  deviceMemory  Float?   // Approximate RAM in GB (Chrome only)
+  connection    String?  // Network type (effectiveType: 4g, 3g, etc.)
+  vendor        String?  // Browser vendor: "Google Inc.", "Apple Computer, Inc."
+  ipAddress     String?  // Collected server-side from headers
+  rawData       Json?    // Full JSON dump of all extra collected data
+  collectedAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
