@@ -33,7 +33,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         });
 
         if (request) {
-            if (request.status === 'APPROVED') relationshipStatus = 'APPROVED';
+            if (request.status === 'BLOCKED') relationshipStatus = request.senderId === currentUserId ? 'BLOCKED' : 'NONE';
+            else if (request.status === 'APPROVED') relationshipStatus = 'APPROVED';
             else if (request.senderId === currentUserId) relationshipStatus = 'SENT';
             else relationshipStatus = 'RECEIVED';
         }
