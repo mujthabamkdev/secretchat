@@ -1,0 +1,124 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.dialog {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 28px 24px 20px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    line-height: 1;
+}
+
+.iconDanger {
+    filter: none;
+}
+
+.iconNeutral {
+    filter: none;
+}
+
+.title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.message {
+    font-size: 14px;
+    color: #888;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.cancelBtn,
+.confirmBtn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+}
+
+.cancelBtn:active,
+.confirmBtn:active {
+    transform: scale(0.97);
+}
+
+.cancelBtn {
+    background: rgba(255, 255, 255, 0.06);
+    color: #aaa;
+}
+
+.cancelBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.confirmBtn {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+}
+
+.confirmBtn:hover {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+.confirmDanger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.confirmDanger:hover {
+    background: rgba(239, 68, 68, 0.25);
+}

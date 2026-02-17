@@ -19,7 +19,6 @@ interface Notification {
 export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [open, setOpen] = useState(false);
-    const [actionLoading, setActionLoading] = useState<string | null>(null);
     const ref = useRef<HTMLDivElement>(null);
 
     const fetchNotifications = async () => {
@@ -33,10 +32,17 @@ export default function NotificationBell() {
     useEffect(() => {
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 8000);
-        return () => clearInterval(interval);
+
+        // Listen for broadcasts from ProfileActions
+        const bc = new BroadcastChannel('friend-actions');
+        bc.onmessage = () => fetchNotifications();
+
+        return () => {
+            clearInterval(interval);
+            bc.close();
+        };
     }, []);
 
-    // Close dropdown on outside click
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -44,22 +50,6 @@ export default function NotificationBell() {
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
-
-    const handleFriendAction = async (requestId: string, action: 'accept' | 'reject') => {
-        setActionLoading(requestId);
-        await fetch('/api/friends', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requestId, action }),
-        });
-        setActionLoading(null);
-        fetchNotifications();
-    };
-
-    const handleCallBack = (userId: string) => {
-        // Navigate to profile to start a call
-        window.location.href = `/dashboard/profile/${userId}`;
-    };
 
     const timeAgo = (time: string) => {
         const diff = (Date.now() - new Date(time).getTime()) / 1000;
@@ -92,7 +82,12 @@ export default function NotificationBell() {
                     ) : (
                         <div className={styles.list}>
                             {notifications.map(n => (
-                                <div key={n.id} className={styles.item}>
+                                <a
+                                    key={n.id}
+                                    href={`/dashboard/profile/${n.user.id}`}
+                                    className={styles.item}
+                                    onClick={() => setOpen(false)}
+                                >
                                     <img
                                         src={n.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${n.user.username}`}
                                         alt={n.user.name}
@@ -109,33 +104,8 @@ export default function NotificationBell() {
                                             {n.type === 'friend_request' ? '👤' : '📞'} {timeAgo(n.time)}
                                         </div>
                                     </div>
-                                    <div className={styles.actions}>
-                                        {n.type === 'friend_request' ? (
-                                            actionLoading === n.id ? (
-                                                <span className={styles.loading}>...</span>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleFriendAction(n.id, 'accept')}
-                                                        className={styles.acceptBtn}
-                                                        title="Accept"
-                                                    >✓</button>
-                                                    <button
-                                                        onClick={() => handleFriendAction(n.id, 'reject')}
-                                                        className={styles.rejectBtn}
-                                                        title="Decline"
-                                                    >✕</button>
-                                                </>
-                                            )
-                                        ) : (
-                                            <button
-                                                onClick={() => handleCallBack(n.user.id)}
-                                                className={styles.callBackBtn}
-                                                title="Call back"
-                                            >📞</button>
-                                        )}
-                                    </div>
-                                </div>
+                                    <span className={styles.arrow}>›</span>
+                                </a>
                             ))}
                         </div>
                     )}
