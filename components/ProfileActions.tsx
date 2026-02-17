@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ReportModal from './ReportModal';
 import ConfirmDialog from './ConfirmDialog';
@@ -25,6 +25,23 @@ export default function ProfileActions({ targetUserId, targetUserName, currentUs
     const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
     const router = useRouter();
 
+    // Poll relationship status every 5s to catch cross-user changes
+    useEffect(() => {
+        if (targetUserId === currentUserId) return;
+        const checkStatus = async () => {
+            try {
+                const res = await fetch(`/api/friends/status?userId=${targetUserId}`);
+                const data = await res.json();
+                if (data.status !== status) {
+                    setStatus(data.status);
+                    router.refresh();
+                }
+            } catch { /* ignore */ }
+        };
+        const interval = setInterval(checkStatus, 5000);
+        return () => clearInterval(interval);
+    }, [targetUserId, status, currentUserId, router]);
+
     if (targetUserId === currentUserId) return null;
 
     const handleAction = async (action: string) => {
@@ -45,6 +62,9 @@ export default function ProfileActions({ targetUserId, targetUserName, currentUs
 
                 // Broadcast so NotificationBell refreshes instantly
                 try { new BroadcastChannel('friend-actions').postMessage('changed'); } catch { }
+
+                // Refresh the server component so the page reflects the new state
+                router.refresh();
             }
         } catch (err) {
             console.error(err);

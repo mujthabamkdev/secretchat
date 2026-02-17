@@ -107,11 +107,14 @@
 .inputPrefix {
     position: absolute;
     left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     color: #555;
     font-size: 15px;
     font-weight: 600;
     pointer-events: none;
     z-index: 1;
+    line-height: 1;
 }
 
 .prefixedInput {
