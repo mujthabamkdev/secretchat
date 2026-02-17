@@ -1,0 +1,211 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #fff;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.severityGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.severityBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 6px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #888;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.severityBtn:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.severityActive {
+    border-color: rgba(99, 102, 241, 0.6) !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+    color: white !important;
+}
+
+.severityLOW.severityActive {
+    border-color: rgba(34, 197, 94, 0.6) !important;
+    background: rgba(34, 197, 94, 0.1) !important;
+}
+
+.severityMEDIUM.severityActive {
+    border-color: rgba(234, 179, 8, 0.6) !important;
+    background: rgba(234, 179, 8, 0.1) !important;
+}
+
+.severityHIGH.severityActive {
+    border-color: rgba(249, 115, 22, 0.6) !important;
+    background: rgba(249, 115, 22, 0.1) !important;
+}
+
+.severityCRITICAL.severityActive {
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ededed;
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+    margin-bottom: 20px;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.cancelBtn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: #888;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.submitBtn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.submitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.success {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.successIcon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.success h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+}
+
+.success p {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.closeBtn {
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}

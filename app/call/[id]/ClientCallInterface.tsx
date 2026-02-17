@@ -98,13 +98,49 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     }, [isCaller, initialStatus]);
 
     // Ask for permission on mount
+    useEffect(() => { requestPermission(); }, [requestPermission]);
+
+    // ── Screenshot protection ──
     useEffect(() => {
-        requestPermission();
+        // Block right-click context menu on this page
+        const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+
+        // Block PrintScreen key and common screenshot shortcuts
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'PrintScreen') {
+                e.preventDefault();
+            }
+            // Block Cmd+Shift+3/4/5 (macOS screenshots)
+            if (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+                e.preventDefault();
+            }
+        };
+
+        // Log visibility changes (user tabbing away)
+        const handleVisibility = () => {
+            if (document.hidden) {
+                console.log('[SECURITY] User tabbed away during call');
+            }
+        };
+
+        document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, []);
+
+    // Cleanup stream and ringtone on unmount
+    useEffect(() => {
         return () => {
             streamRef.current?.getTracks().forEach(track => track.stop());
             stopRinging();
         };
-    }, []);
+    }, [stopRinging]);
 
     // ── Connecting dots animation ──
     useEffect(() => {

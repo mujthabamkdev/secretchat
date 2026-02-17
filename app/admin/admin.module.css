@@ -1,0 +1,361 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background: #0a0a0a;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    width: 240px;
+    background: #111;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 20px;
+}
+
+.sidebarLogo {
+    font-size: 24px;
+}
+
+.sidebarTitle {
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: #999;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.navItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.sidebarFooter {
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.backLink {
+    color: #666;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+}
+
+.backLink:hover {
+    color: #aaa;
+}
+
+/* ── Main ── */
+.main {
+    flex: 1;
+    margin-left: 240px;
+    padding: 32px 40px;
+    min-height: 100vh;
+}
+
+/* ── Overview Cards ── */
+.pageTitle {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.pageSubtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 32px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.statCard {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.statValue {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.statAccent {
+    color: #6366f1;
+}
+
+.statWarning {
+    color: #f59e0b;
+}
+
+.statDanger {
+    color: #ef4444;
+}
+
+/* ── Table ── */
+.searchBar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.searchInput {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ededed;
+    font-size: 14px;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table td {
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.userCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.userAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.userName {
+    font-weight: 600;
+    color: #fff;
+}
+
+.userEmail {
+    font-size: 12px;
+    color: #666;
+}
+
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badgeActive {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.badgeSuspended {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.badgeBlocked {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.badgeAdmin {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+}
+
+.badgeLow {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.badgeMedium {
+    background: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+}
+
+.badgeHigh {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+}
+
+.badgeCritical {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* ── Action buttons ── */
+.actionBtn {
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: #999;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 6px;
+}
+
+.actionBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.actionBtnDanger {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.actionBtnDanger:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.actionBtnSuccess {
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+}
+
+.actionBtnSuccess:hover {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.reportCount {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.emptyIcon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 16px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px;
+        padding: 16px 8px;
+    }
+
+    .sidebarTitle,
+    .navItem span:last-child,
+    .backLink {
+        display: none;
+    }
+
+    .navItem {
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .navItem span:first-child {
+        font-size: 18px;
+    }
+
+    .main {
+        margin-left: 60px;
+        padding: 20px 16px;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 10px;
+    }
+}

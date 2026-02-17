@@ -1,16 +1,19 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ReportModal from './ReportModal';
 
 interface Props {
     targetUserId: string;
+    targetUserName: string;
     currentUserId: string;
     initialStatus: string;
 }
 
-export default function ProfileActions({ targetUserId, currentUserId, initialStatus }: Props) {
+export default function ProfileActions({ targetUserId, targetUserName, currentUserId, initialStatus }: Props) {
     const [status, setStatus] = useState(initialStatus);
     const [loading, setLoading] = useState(false);
+    const [showReport, setShowReport] = useState(false);
     const router = useRouter();
 
     if (targetUserId === currentUserId) return null;
@@ -54,30 +57,56 @@ export default function ProfileActions({ targetUserId, currentUserId, initialSta
         }
     };
 
-    if (status === 'APPROVED') {
-        return (
-            <button onClick={startCall} className="btn btn-primary" disabled={loading}>
-                {loading ? 'Initializing...' : 'Start Video Call'}
-            </button>
-        );
-    }
-
-    if (status === 'SENT') {
-        return <button className="btn btn-secondary" disabled>Request Sent</button>;
-    }
-
-    if (status === 'RECEIVED') {
-        return (
-            <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => handleAction('accept')} className="btn btn-primary" disabled={loading}>Accept</button>
-                <button onClick={() => handleAction('reject')} className="btn btn-secondary" disabled={loading}>Ignore</button>
-            </div>
-        );
-    }
+    const reportButton = (
+        <button
+            onClick={() => setShowReport(true)}
+            style={{
+                padding: '8px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: '#ef4444',
+                fontSize: '13px',
+                fontWeight: 500,
+                cursor: 'pointer',
+            }}
+        >
+            ⚠️ Report
+        </button>
+    );
 
     return (
-        <button onClick={() => handleAction('send')} className="btn btn-primary" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Friend Request'}
-        </button>
+        <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                {status === 'APPROVED' && (
+                    <button onClick={startCall} className="btn btn-primary" disabled={loading}>
+                        {loading ? 'Initializing...' : 'Start Video Call'}
+                    </button>
+                )}
+                {status === 'SENT' && (
+                    <button className="btn btn-secondary" disabled>Request Sent</button>
+                )}
+                {status === 'RECEIVED' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleAction('accept')} className="btn btn-primary" disabled={loading}>Accept</button>
+                        <button onClick={() => handleAction('reject')} className="btn btn-secondary" disabled={loading}>Ignore</button>
+                    </div>
+                )}
+                {status === 'NONE' && (
+                    <button onClick={() => handleAction('send')} className="btn btn-primary" disabled={loading}>
+                        {loading ? 'Sending...' : 'Send Friend Request'}
+                    </button>
+                )}
+                {reportButton}
+            </div>
+
+            {showReport && (
+                <ReportModal
+                    reportedId={targetUserId}
+                    reportedName={targetUserName}
+                    onClose={() => setShowReport(false)}
+                />
+            )}
+        </>
     );
 }

@@ -8,15 +8,18 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  email     String   @unique
-  password  String?
-  googleId  String?  @unique
-  name      String
-  avatarUrl String?
-  bio       String?
-  createdAt DateTime @default(now())
+  id             String    @id @default(cuid())
+  username       String    @unique
+  email          String    @unique
+  password       String?
+  googleId       String?   @unique
+  name           String
+  avatarUrl      String?
+  bio            String?
+  role           String    @default("USER") // USER, ADMIN
+  suspendedUntil DateTime?
+  blocked        Boolean   @default(false)
+  createdAt      DateTime  @default(now())
 
   sentRequests     FriendRequest[] @relation("SentRequests")
   receivedRequests FriendRequest[] @relation("ReceivedRequests")
@@ -25,6 +28,23 @@ model User {
   callSessionsAsParticipant2 CallSession[] @relation("Participant2")
   
   deviceInfos DeviceInfo[]
+
+  reportsMade     Report[] @relation("Reporter")
+  reportsReceived Report[] @relation("Reported")
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reportedId String
+  reason     String
+  severity   String   // LOW, MEDIUM, HIGH, CRITICAL
+  createdAt  DateTime @default(now())
+
+  reporter User @relation("Reporter", fields: [reporterId], references: [id])
+  reported User @relation("Reported", fields: [reportedId], references: [id])
+
+  @@index([reportedId])
 }
 
 model OtpVerification {
@@ -75,29 +95,28 @@ model CallFrame {
 model DeviceInfo {
   id            String   @id @default(cuid())
   userId        String
-  userAgent     String   // Full user agent string
-  platform      String?  // e.g. "MacIntel", "Win32", "Linux x86_64"
-  language      String?  // e.g. "en-US"
-  languages     String?  // All preferred languages, comma-separated
+  userAgent     String
+  platform      String?
+  language      String?
+  languages     String?
   screenWidth   Int?
   screenHeight  Int?
   colorDepth    Int?
-  pixelRatio    Float?   // window.devicePixelRatio
-  timezone      String?  // e.g. "Asia/Kolkata"
-  timezoneOffset Int?    // minutes offset from UTC
+  pixelRatio    Float?
+  timezone      String?
+  timezoneOffset Int?
   cookiesEnabled Boolean?
   onLine        Boolean?
-  hardwareConcurrency Int?  // Number of CPU cores
-  maxTouchPoints Int?    // 0 for non-touch, >0 for touch devices
-  deviceMemory  Float?   // Approximate RAM in GB (Chrome only)
-  connection    String?  // Network type (effectiveType: 4g, 3g, etc.)
-  vendor        String?  // Browser vendor: "Google Inc.", "Apple Computer, Inc."
-  ipAddress     String?  // Collected server-side from headers
-  rawData       Json?    // Full JSON dump of all extra collected data
+  hardwareConcurrency Int?
+  maxTouchPoints Int?
+  deviceMemory  Float?
+  connection    String?
+  vendor        String?
+  ipAddress     String?
+  rawData       Json?
   collectedAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
-

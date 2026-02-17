@@ -46,6 +46,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             <div className={styles.actionsContainer}>
                 <ProfileActions
                     targetUserId={id}
+                    targetUserName={user.name}
                     currentUserId={currentUserId!}
                     initialStatus={relationshipStatus}
                 />
