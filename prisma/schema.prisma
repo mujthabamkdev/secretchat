@@ -53,6 +53,7 @@ model CallSession {
   id             String      @id @default(cuid())
   participant1Id String
   participant2Id String
+  status         String      @default("RINGING") // RINGING, ACTIVE, ENDED
   startedAt      DateTime    @default(now())
   endedAt        DateTime?
   
