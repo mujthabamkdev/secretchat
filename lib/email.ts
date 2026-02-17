@@ -1,23 +1,17 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-    },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOtpEmail(email: string, otp: string): Promise<boolean> {
-    // If no Gmail credentials configured, log OTP to console (dev mode)
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    // If no Resend key configured, log OTP to console (dev mode)
+    if (!process.env.RESEND_API_KEY) {
         console.log(`\n📧 [DEV MODE] OTP for ${email}: ${otp}\n`);
         return true;
     }
 
     try {
-        await transporter.sendMail({
-            from: `"SecretChat" <${process.env.GMAIL_USER}>`,
+        await resend.emails.send({
+            from: 'SecretChat <onboarding@resend.dev>',
             to: email,
             subject: 'Your SecretChat Verification Code',
             html: `
