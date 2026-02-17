@@ -185,6 +185,24 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         }
     }, [callState]);
 
+    // ── Disconnect detection during active call ──
+    useEffect(() => {
+        if (callState !== 'active') return;
+
+        const pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/call/session?sessionId=${sessionId}`);
+                const data = await res.json();
+                if (data.status === 'ENDED') {
+                    streamRef.current?.getTracks().forEach(track => track.stop());
+                    router.replace('/dashboard');
+                }
+            } catch (e) { }
+        }, 3000);
+
+        return () => clearInterval(pollInterval);
+    }, [callState, sessionId, router]);
+
     const endCall = async () => {
         stopRinging();
         try {
