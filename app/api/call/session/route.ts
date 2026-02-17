@@ -9,7 +9,27 @@ export async function POST(req: Request) {
         const currentUserId = cookieStore.get('userId')?.value;
         if (!currentUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { targetUserId } = await req.json();
+        const body = await req.json();
+
+        // Handle sendBeacon end-call (comes as POST with sessionId + action)
+        if (body.sessionId && body.action === 'end') {
+            await prisma.callSession.update({
+                where: { id: body.sessionId },
+                data: { endedAt: new Date(), status: 'ENDED' },
+            });
+            return NextResponse.json({ success: true });
+        }
+
+        const { targetUserId } = body;
+
+        // End any stale RINGING sessions from this caller first
+        await prisma.callSession.updateMany({
+            where: {
+                participant1Id: currentUserId,
+                status: 'RINGING',
+            },
+            data: { status: 'ENDED', endedAt: new Date() },
+        });
 
         const session = await prisma.callSession.create({
             data: {
@@ -26,11 +46,9 @@ export async function POST(req: Request) {
     }
 }
 
-// Update a call session (end call, accept call, check status)
+// Update a call session (end call, accept call)
 export async function PATCH(req: Request) {
     try {
-        const cookieStore = await cookies();
-        const currentUserId = cookieStore.get('userId')?.value;
         const { sessionId, action } = await req.json();
 
         if (action === 'end') {
@@ -51,17 +69,25 @@ export async function PATCH(req: Request) {
     }
 }
 
-// Check call status (caller polls this)
+// Check call status / incoming calls
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const sessionId = searchParams.get('sessionId');
 
         if (!sessionId) {
-            // Check for incoming calls for the current user
             const cookieStore = await cookies();
             const currentUserId = cookieStore.get('userId')?.value;
             if (!currentUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+            // Auto-expire calls ringing for more than 60 seconds
+            await prisma.callSession.updateMany({
+                where: {
+                    status: 'RINGING',
+                    startedAt: { lt: new Date(Date.now() - 60000) },
+                },
+                data: { status: 'ENDED', endedAt: new Date() },
+            });
 
             const incomingCall = await prisma.callSession.findFirst({
                 where: {

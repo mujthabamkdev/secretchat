@@ -17,16 +17,25 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
 
     if (!session) notFound();
 
+    // If session is already ended, go back
+    if (session.status === 'ENDED') redirect('/dashboard');
+
     // Verify user is part of this session
     if (session.participant1Id !== currentUserId && session.participant2Id !== currentUserId) {
         redirect('/dashboard');
     }
 
-    const otherUser = session.participant1Id === currentUserId ? session.participant2 : session.participant1;
+    const isCaller = session.participant1Id === currentUserId;
+    const otherUser = isCaller ? session.participant2 : session.participant1;
 
     return (
         <div className={styles.callWrapper}>
-            <ClientCallInterface sessionId={id} otherUser={otherUser} />
+            <ClientCallInterface
+                sessionId={id}
+                otherUser={otherUser}
+                isCaller={isCaller}
+                initialStatus={session.status}
+            />
         </div>
     );
 }
