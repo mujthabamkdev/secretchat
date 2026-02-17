@@ -30,6 +30,7 @@ export default function Register() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to send code');
             setStep('otp');
+
             // Start 60s cooldown
             setCooldown(60);
             const timer = setInterval(() => {

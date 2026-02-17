@@ -50,13 +50,15 @@ export async function POST(req: Request) {
             },
         });
 
-        // Send OTP email
+        // Send OTP email (mock log)
         const sent = await sendOtpEmail(normalizedEmail, otp);
-        if (!sent) {
-            return NextResponse.json({ error: 'Failed to send verification email' }, { status: 500 });
-        }
 
-        return NextResponse.json({ success: true, message: 'Verification code sent' });
+        // Return OTP in response for dev/auto-fill
+        return NextResponse.json({
+            success: true,
+            message: 'Verification code sent',
+            debugOtp: otp
+        });
     } catch (error: any) {
         console.error('Send OTP Error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

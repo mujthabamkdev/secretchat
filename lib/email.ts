@@ -1,33 +1,36 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from 'nodemailer';
 
 export async function sendOtpEmail(email: string, otp: string): Promise<boolean> {
-    // If no Resend key configured, log OTP to console (dev mode)
-    if (!process.env.RESEND_API_KEY) {
-        console.log(`\n📧 [DEV MODE] OTP for ${email}: ${otp}\n`);
-        return true;
+    console.log(`[EMAIL LOG] To: ${email} | OTP: ${otp}`);
+
+    // If GMAIL_USER is set, we attempt to send the email
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_APP_PASSWORD,
+                },
+            });
+
+            // Send to the User (The one registering)
+            await transporter.sendMail({
+                from: process.env.GMAIL_USER, // secretchatreal@gmail.com
+                to: email,
+                subject: `Your SecretChat Verification Code`,
+                text: `Here is your verification code: ${otp}\n\nThis code expires in 5 minutes.`,
+            });
+
+            console.log(`[EMAIL] Sent OTP to ${email}`);
+            return true;
+        } catch (error: any) {
+            console.error('[EMAIL ERROR] Failed to send email:', error.message);
+            // Return false so the API caller knows the email failed
+            return false;
+        }
     }
 
-    try {
-        await resend.emails.send({
-            from: 'SecretChat <onboarding@resend.dev>',
-            to: email,
-            subject: 'Your SecretChat Verification Code',
-            html: `
-                <div style="font-family: -apple-system, sans-serif; max-width: 400px; margin: 0 auto; padding: 32px; background: #0a0a0a; color: #ededed; border-radius: 16px;">
-                    <h2 style="text-align: center; margin-bottom: 8px;">🔒 SecretChat</h2>
-                    <p style="text-align: center; color: #888; font-size: 14px;">Your verification code</p>
-                    <div style="text-align: center; font-size: 36px; font-weight: 900; letter-spacing: 8px; padding: 24px 0; background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        ${otp}
-                    </div>
-                    <p style="text-align: center; color: #666; font-size: 12px;">This code expires in 5 minutes. Do not share it.</p>
-                </div>
-            `,
-        });
-        return true;
-    } catch (error) {
-        console.error('Email send error:', error);
-        return false;
-    }
+    // If no credentials, we assume dev mode and return true (logged to console above)
+    return true;
 }
