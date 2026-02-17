@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import styles from './layout.module.css';
 import IncomingCallBanner from '@/components/IncomingCallBanner';
+import NotificationBell from '@/components/NotificationBell';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -19,6 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <nav className={styles.nav}>
                 <Link href="/dashboard" className={styles.logo}>SecretChat</Link>
                 <div className={styles.actions}>
+                    <NotificationBell />
                     {isAdmin && (
                         <Link href="/admin" className={styles.navLink} style={{ color: '#818cf8' }}>
                             🛡️ Admin

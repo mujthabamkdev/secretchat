@@ -36,3 +36,9 @@
 .mainContent {
     padding: 20px 0;
 }
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
