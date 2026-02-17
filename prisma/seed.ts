@@ -69,13 +69,26 @@ function generateUsers(count: number) {
 }
 
 async function main() {
-    console.log('🌱 Seeding 1,000 users...');
+    console.log('🌱 Ensuring Admin account...');
+    await prisma.user.upsert({
+        where: { email: 'secretchatreal@gmail.com' },
+        update: { role: 'ADMIN' },
+        create: {
+            username: 'admin',
+            email: 'secretchatreal@gmail.com',
+            name: 'SecretChat Admin',
+            password: 'adminpassword123',
+            role: 'ADMIN',
+            avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+        },
+    });
 
+    console.log('🌱 Seeding 1,000 dummy users...');
     const users = generateUsers(1000);
 
-    // Batch insert in chunks of 100
-    for (let i = 0; i < users.length; i += 100) {
-        const chunk = users.slice(i, i + 100);
+    // Batch insert in chunks of 50
+    for (let i = 0; i < users.length; i += 50) {
+        const chunk = users.slice(i, i + 50);
         await Promise.all(
             chunk.map((u) =>
                 prisma.user.upsert({
@@ -85,7 +98,7 @@ async function main() {
                 })
             )
         );
-        console.log(`  ✓ ${Math.min(i + 100, users.length)} / ${users.length}`);
+        console.log(`  ✓ ${Math.min(i + 50, users.length)} / ${users.length}`);
     }
 
     const total = await prisma.user.count();
