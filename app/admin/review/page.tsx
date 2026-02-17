@@ -63,17 +63,19 @@ export default function AdminReviewPage() {
                         {users.map(user => (
                             <tr key={user.id}>
                                 <td>
-                                    <div className={styles.userCell}>
-                                        <img
-                                            src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
-                                            alt={user.name}
-                                            className={styles.userAvatar}
-                                        />
-                                        <div>
-                                            <div className={styles.userName}>{user.name}</div>
-                                            <div className={styles.userEmail}>@{user.username} · {user.email}</div>
+                                    <a href={`/dashboard/profile/${user.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                        <div className={styles.userCell}>
+                                            <img
+                                                src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
+                                                alt={user.name}
+                                                className={styles.userAvatar}
+                                            />
+                                            <div>
+                                                <div className={styles.userName}>{user.name}</div>
+                                                <div className={styles.userEmail}>@{user.username} · {user.email}</div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </a>
                                 </td>
                                 <td>
                                     <span className={styles.reportCount} style={{ color: '#ef4444' }}>

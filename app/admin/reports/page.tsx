@@ -75,17 +75,19 @@ export default function AdminReportsPage() {
                             <>
                                 <tr key={entry.user.id} onClick={() => setExpanded(expanded === entry.user.id ? null : entry.user.id)} style={{ cursor: 'pointer' }}>
                                     <td>
-                                        <div className={styles.userCell}>
-                                            <img
-                                                src={entry.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.user.username}`}
-                                                alt={entry.user.name}
-                                                className={styles.userAvatar}
-                                            />
-                                            <div>
-                                                <div className={styles.userName}>{entry.user.name}</div>
-                                                <div className={styles.userEmail}>@{entry.user.username}</div>
+                                        <a href={`/dashboard/profile/${entry.user.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                            <div className={styles.userCell}>
+                                                <img
+                                                    src={entry.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.user.username}`}
+                                                    alt={entry.user.name}
+                                                    className={styles.userAvatar}
+                                                />
+                                                <div>
+                                                    <div className={styles.userName}>{entry.user.name}</div>
+                                                    <div className={styles.userEmail}>@{entry.user.username}</div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     </td>
                                     <td>
                                         <span className={styles.reportCount} style={{ color: entry.totalReports >= 20 ? '#ef4444' : '#f59e0b' }}>

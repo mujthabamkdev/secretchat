@@ -25,3 +25,378 @@
     margin-top: 10px;
     width: 100%;
 }
+
+/* ── Admin Badge ── */
+.adminBadge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #818cf8;
+    font-weight: 600;
+}
+
+.statusBlocked {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+}
+
+.statusSuspended {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+}
+
+/* ── Admin Section ── */
+.adminSection {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.adminTitle {
+    font-size: 18px;
+    font-weight: 800;
+    color: #818cf8;
+    margin-bottom: 20px;
+}
+
+/* Stats Row */
+.statsRow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.statBox {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+}
+
+.statNum {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.statLabel {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+}
+
+/* Info Cards */
+.infoCard {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+}
+
+.cardTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ccc;
+    margin-bottom: 14px;
+}
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.infoItem {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.infoKey {
+    font-weight: 600;
+    color: #666;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.ipBadge {
+    font-family: monospace;
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+    padding: 1px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Device */
+.deviceEntry {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.deviceEntry:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.uaDetails {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #555;
+}
+
+.uaDetails summary {
+    cursor: pointer;
+    color: #666;
+}
+
+.uaCode {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #888;
+    word-break: break-all;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+/* Friends */
+.friendsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.friendChip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.friendChip:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.friendAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.friendName {
+    font-size: 13px;
+    font-weight: 600;
+    color: #eee;
+}
+
+.friendUsername {
+    font-size: 11px;
+    color: #666;
+}
+
+/* Call Logs */
+.callList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.callRow {
+    display: grid;
+    grid-template-columns: 70px 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.callStatus {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.callStatus[data-status="ENDED"] {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.callStatus[data-status="ACTIVE"] {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+}
+
+.callStatus[data-status="RINGING"] {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.callWith {
+    color: #ccc;
+}
+
+.callWith strong {
+    color: #fff;
+}
+
+.callTime {
+    font-size: 11px;
+    color: #555;
+}
+
+.callDuration {
+    font-size: 12px;
+    color: #888;
+    font-weight: 600;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Frames */
+.framesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.frameThumb {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    background: #000;
+    display: block;
+}
+
+.frameThumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+
+.frameThumb:hover img {
+    transform: scale(1.05);
+}
+
+.frameTime {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: #ccc;
+    font-size: 9px;
+    padding: 12px 6px 4px;
+    text-align: center;
+}
+
+/* Reports */
+.reportList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.reportRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.severityDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sevLOW {
+    background: #22c55e;
+}
+
+.sevMEDIUM {
+    background: #eab308;
+}
+
+.sevHIGH {
+    background: #f97316;
+}
+
+.sevCRITICAL {
+    background: #ef4444;
+}
+
+.reportReason {
+    color: #aaa;
+    flex: 1;
+}
+
+.reportMeta {
+    font-size: 11px;
+    color: #555;
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .statsRow {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .infoGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .callRow {
+        grid-template-columns: 60px 1fr;
+        gap: 4px;
+    }
+
+    .callTime,
+    .callDuration {
+        display: none;
+    }
+
+    .friendsGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

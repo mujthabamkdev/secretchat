@@ -173,8 +173,8 @@
 
 .table th {
     text-align: left;
-    padding: 10px 14px;
-    font-size: 11px;
+    padding: 6px 10px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #666;
@@ -183,8 +183,8 @@
 }
 
 .table td {
-    padding: 12px 14px;
-    font-size: 14px;
+    padding: 7px 10px;
+    font-size: 13px;
     color: #ccc;
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
@@ -196,12 +196,17 @@
 .userCell {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.userCell:hover .userName {
+    color: #818cf8;
 }
 
 .userAvatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -209,10 +214,12 @@
 .userName {
     font-weight: 600;
     color: #fff;
+    font-size: 13px;
+    transition: color 0.15s;
 }
 
 .userEmail {
-    font-size: 12px;
+    font-size: 11px;
     color: #666;
 }
 

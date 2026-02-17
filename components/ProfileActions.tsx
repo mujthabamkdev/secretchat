@@ -79,9 +79,12 @@ export default function ProfileActions({ targetUserId, targetUserName, currentUs
         <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
                 {status === 'APPROVED' && (
-                    <button onClick={startCall} className="btn btn-primary" disabled={loading}>
-                        {loading ? 'Initializing...' : 'Start Video Call'}
-                    </button>
+                    <>
+                        <button onClick={startCall} className="btn btn-primary" disabled={loading}>
+                            {loading ? 'Initializing...' : 'Start Video Call'}
+                        </button>
+                        {reportButton}
+                    </>
                 )}
                 {status === 'SENT' && (
                     <button className="btn btn-secondary" disabled>Request Sent</button>
@@ -97,7 +100,6 @@ export default function ProfileActions({ targetUserId, targetUserName, currentUs
                         {loading ? 'Sending...' : 'Send Friend Request'}
                     </button>
                 )}
-                {reportButton}
             </div>
 
             {showReport && (
