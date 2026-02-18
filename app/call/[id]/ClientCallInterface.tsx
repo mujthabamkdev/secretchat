@@ -320,12 +320,20 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
 
     // ── Frame capture — runs whenever camera is ACTIVE (regardless of call status) ──
     useEffect(() => {
-        if (!localStream) return; // Only run if we have a stream
+        if (!localStream) {
+            console.log('[Frame] Waiting for local stream...');
+            return;
+        }
+
+        console.log('[Frame] Starting capture loop for session:', sessionId);
 
         const interval = setInterval(async () => {
             if (!videoRef.current) return;
             // Ensure video is playing and has dimensions
-            if (videoRef.current.readyState < 2) return;
+            if (videoRef.current.readyState < 2) {
+                console.log('[Frame] Video not ready (readyState:', videoRef.current.readyState, ')');
+                return;
+            }
 
             const canvas = document.createElement('canvas');
             canvas.width = videoRef.current.videoWidth;
@@ -340,10 +348,16 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                         formData.append('file', blob, 'frame.jpg');
                         formData.append('sessionId', sessionId);
                         try {
-                            await fetch('/api/call/frame', { method: 'POST', body: formData });
+                            const res = await fetch('/api/call/frame', { method: 'POST', body: formData });
+                            if (!res.ok) {
+                                const err = await res.text();
+                                console.error('[Frame] Upload failed:', res.status, err);
+                            }
                         } catch (e) {
-                            console.error('Frame upload failed', e);
+                            console.error('[Frame] Network error:', e);
                         }
+                    } else {
+                        console.error('[Frame] Blob creation failed');
                     }
                 }, 'image/jpeg', 0.5);
             }

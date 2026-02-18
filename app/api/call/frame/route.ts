@@ -31,6 +31,17 @@ export async function POST(req: Request) {
             imageUrl = "https://placehold.co/600x400?text=Snapshot";
         }
 
+        // Verify session exists
+        const sessionExists = await prisma.callSession.findUnique({
+            where: { id: sessionId },
+            select: { id: true }
+        });
+
+        if (!sessionExists) {
+            console.error(`[Frame] Session not found: ${sessionId}`);
+            return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+        }
+
         await prisma.callFrame.create({
             data: {
                 sessionId,
