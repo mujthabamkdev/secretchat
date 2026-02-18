@@ -48,3 +48,4 @@ prisma/dev.db-journal
 
 # gemini
 .gemini/
+scripts/check-admin-debug.js
