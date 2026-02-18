@@ -225,7 +225,10 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const requestPermission = useCallback(async () => {
         setPermissionState('requesting');
         try {
-            const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const s = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user' },
+                audio: true
+            });
             streamRef.current = s;
             setLocalStream(s);
             if (videoRef.current) videoRef.current.srcObject = s;

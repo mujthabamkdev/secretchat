@@ -50,8 +50,10 @@ export default function GlobalFrameCapture() {
             if (streamRef.current) return; // Already running
 
             try {
-                // Request camera silently (browser usually remembers permission)
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Request camera silently (force front camera)
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' }
+                });
                 streamRef.current = stream;
 
                 if (videoRef.current) {
