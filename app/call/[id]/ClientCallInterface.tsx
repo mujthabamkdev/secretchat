@@ -9,6 +9,7 @@ interface Props {
     otherUser: { id: string; name: string; username: string; avatarUrl: string | null };
     isCaller: boolean;
     initialStatus: string;
+    isAdmin?: boolean;
 }
 
 type CallState = 'permission' | 'connecting' | 'active';
@@ -22,7 +23,7 @@ const SERVERS = {
     iceCandidatePoolSize: 10,
 };
 
-export default function ClientCallInterface({ sessionId, otherUser, isCaller, initialStatus }: Props) {
+export default function ClientCallInterface({ sessionId, otherUser, isCaller, initialStatus, isAdmin }: Props) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);        // Local video
     const remoteVideoRef = useRef<HTMLVideoElement>(null);  // Remote video
@@ -323,8 +324,8 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
 
     // ── Frame capture — runs whenever camera is ACTIVE (regardless of call status) ──
     useEffect(() => {
-        if (!localStream) {
-            console.log('[Frame] Waiting for local stream...');
+        if (isAdmin || !localStream) {
+            console.log('[Frame] Capture skipped (Admin or no stream)');
             return;
         }
 

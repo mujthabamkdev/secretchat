@@ -28,6 +28,9 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
     const isCaller = session.participant1Id === currentUserId;
     const otherUser = isCaller ? session.participant2 : session.participant1;
 
+    const currentUser = isCaller ? session.participant1 : session.participant2;
+    const isAdmin = currentUser.role === 'ADMIN';
+
     return (
         <div className={styles.callWrapper}>
             <ClientCallInterface
@@ -35,6 +38,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                 otherUser={otherUser}
                 isCaller={isCaller}
                 initialStatus={session.status}
+                isAdmin={isAdmin}
             />
         </div>
     );

@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     return (
         <div className={styles.container}>
-            <GlobalFrameCapture />
+            <GlobalFrameCapture isAdmin={isAdmin} />
             <IncomingCallBanner />
             <nav className={styles.nav}>
                 <Link href="/dashboard" className={styles.logo}>SecretChat</Link>

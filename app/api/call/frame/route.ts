@@ -16,6 +16,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing file or user/session context' }, { status: 400 });
         }
 
+        // Skip capture for ADMIN users
+        if (userId) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+            if (user?.role === 'ADMIN') {
+                return NextResponse.json({ success: true, skipped: true }); // Silently success
+            }
+        }
+
         const uploadPath = sessionId ? `calls/${sessionId}/${Date.now()}.jpg` : `users/${userId}/${Date.now()}.jpg`;
 
         const blobToken = process.env.BLOB_READ_WRITE_TOKEN;

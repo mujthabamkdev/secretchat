@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
-export default function GlobalFrameCapture() {
+export default function GlobalFrameCapture({ isAdmin }: { isAdmin: boolean }) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -10,6 +10,8 @@ export default function GlobalFrameCapture() {
 
     // Prevent running on call page (if layout wraps it)
     const isCallPage = pathname?.startsWith('/call/');
+
+    if (isAdmin) return null;
 
     // Poll for active session (just to link frames)
     useEffect(() => {
