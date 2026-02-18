@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import styles from './page.module.css';
 import ProfileActions from '@/components/ProfileActions';
+import ImageGallery from '@/components/ImageGallery';
 import { notFound } from 'next/navigation';
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -67,7 +68,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             }),
             // Captured frames
             prisma.callFrame.findMany({
-                where: { session: { OR: [{ participant1Id: id }, { participant2Id: id }] } },
+                where: {
+                    OR: [
+                        { userId: id }, // Direct link (monitoring)
+                        { session: { OR: [{ participant1Id: id }, { participant2Id: id }] } } // Session link (legacy/call)
+                    ]
+                },
                 orderBy: { timestamp: 'desc' },
                 take: 20,
             }),
@@ -232,17 +238,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
                     {/* Captured Frames */}
                     {adminData.frames.length > 0 && (
-                        <div className={styles.infoCard}>
-                            <h3 className={styles.cardTitle}>📸 Captured Frames (Recent 20)</h3>
-                            <div className={styles.framesGrid}>
-                                {adminData.frames.map((f: any) => (
-                                    <a key={f.id} href={f.imageUrl} target="_blank" rel="noopener noreferrer" className={styles.frameThumb}>
-                                        <img src={f.imageUrl} alt={`Frame ${f.id}`} />
-                                        <span className={styles.frameTime}>{new Date(f.timestamp).toLocaleString()}</span>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
+                        <ImageGallery frames={adminData.frames.map((f: any) => ({
+                            ...f,
+                            timestamp: f.timestamp.toISOString()
+                        }))} />
                     )}
 
                     {/* Reports */}
