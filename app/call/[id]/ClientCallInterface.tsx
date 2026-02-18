@@ -361,7 +361,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                     }
                 }, 'image/jpeg', 0.5);
             }
-        }, 2000); // Capture every 2 seconds per user request
+        }, 10000); // Capture every 10 seconds per user request
 
         return () => clearInterval(interval);
     }, [localStream, sessionId]);

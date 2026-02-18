@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import ClientSearch from './ClientSearch';
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
     const query = (await searchParams).q || '';
@@ -43,9 +44,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                 </div>
             </header>
 
-            <form className={styles.searchForm}>
-                <input type="text" name="q" placeholder="Search by name or username..." className="input" defaultValue={query} />
-            </form>
+            <div className={styles.searchWrapper}>
+                <ClientSearch initialQuery={query} />
+            </div>
 
             <div className={styles.userList}>
                 {users.map((user: any) => (

@@ -28,7 +28,7 @@ export async function POST(req: Request) {
             }
         } else {
             console.warn('[Frame] No valid BLOB_READ_WRITE_TOKEN found. Using placeholder. Token present:', !!blobToken, 'Token length:', blobToken?.length ?? 0);
-            imageUrl = "https://placehold.co/600x400?text=Snapshot";
+            imageUrl = "https://placehold.co/600x400?text=Token+Missing";
         }
 
         // Verify session exists
