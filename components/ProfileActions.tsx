@@ -115,7 +115,7 @@ export default function ProfileActions({ targetUserId, targetUserName, currentUs
                 {status === 'APPROVED' && (
                     <>
                         <button onClick={startCall} className="btn btn-primary" disabled={loading}>
-                            {loading ? 'Initializing...' : 'Start Video Call'}
+                            {loading ? 'Initializing...' : 'Start Call'}
                         </button>
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button onClick={() => setShowReport(true)} style={{
