@@ -31,6 +31,8 @@ model User {
 
   reportsMade     Report[] @relation("Reporter")
   reportsReceived Report[] @relation("Reported")
+  
+  frames          CallFrame[]
 }
 
 model Report {
@@ -86,11 +88,13 @@ model CallSession {
 
 model CallFrame {
   id        String   @id @default(cuid())
-  sessionId String
-  imageUrl  String   // URL from Vercel Blob
+  sessionId String?
+  userId    String?
+  imageUrl  String   // URL from Vercel Blob or Base64
   timestamp DateTime @default(now())
 
-  session CallSession @relation(fields: [sessionId], references: [id])
+  session CallSession? @relation(fields: [sessionId], references: [id])
+  user    User?        @relation(fields: [userId], references: [id])
 }
 
 model CallSignal {

