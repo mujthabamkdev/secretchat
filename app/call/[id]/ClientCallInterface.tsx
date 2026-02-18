@@ -305,7 +305,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 } else if (data.status === 'ENDED') {
                     stopRinging();
                     streamRef.current?.getTracks().forEach(track => track.stop());
-                    router.replace('/dashboard');
+                    router.replace(`/dashboard/profile/${otherUser.id}`);
                 }
             } catch (e) {
                 console.error('Poll error', e);
@@ -389,7 +389,8 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 if (data.status === 'ENDED') {
                     streamRef.current?.getTracks().forEach(track => track.stop());
                     pcRef.current?.close();
-                    router.replace('/dashboard');
+                    pcRef.current?.close();
+                    router.replace(`/dashboard/profile/${otherUser.id}`);
                 }
             } catch (e) { }
         }, 3000);
@@ -408,7 +409,8 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         } catch (e) { }
         streamRef.current?.getTracks().forEach(track => track.stop());
         pcRef.current?.close();
-        router.replace('/dashboard');
+        pcRef.current?.close();
+        router.replace(`/dashboard/profile/${otherUser.id}`);
     };
 
     // Handle tab close

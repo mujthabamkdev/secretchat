@@ -30,6 +30,25 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
     const profileAvatar = currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.username || 'default'}`;
 
+
+    // Fetch friends (connections)
+    const connections = currentUserId ? await prisma.friendRequest.findMany({
+        where: {
+            OR: [
+                { senderId: currentUserId, status: 'APPROVED' },
+                { receiverId: currentUserId, status: 'APPROVED' }
+            ]
+        },
+        include: {
+            sender: { select: { id: true, name: true, username: true, avatarUrl: true } },
+            receiver: { select: { id: true, name: true, username: true, avatarUrl: true } }
+        }
+    }) : [];
+
+    const friends = connections.map(conn =>
+        conn.senderId === currentUserId ? conn.receiver : conn.sender
+    );
+
     return (
         <div className="container">
             <header className={styles.header}>
@@ -48,8 +67,31 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                 <ClientSearch initialQuery={query} />
             </div>
 
+            {/* Friends Section */}
+            {friends.length > 0 && (
+                <div className={styles.friendsSection}>
+                    <h2 className={styles.sectionTitle} style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem', marginTop: '2rem' }}>My Connections</h2>
+                    <div className={styles.userList}>
+                        {friends.map((friend: any) => (
+                            <Link href={`/dashboard/profile/${friend.id}`} key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981' }}>
+                                <div className={styles.avatar}>
+                                    <img src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`} alt={friend.name} />
+                                </div>
+                                <div className={styles.userInfo}>
+                                    <div className={styles.userName}>{friend.name}</div>
+                                    <div className={styles.userHandle}>@{friend.username}</div>
+                                </div>
+                                <div className={styles.chevron} style={{ color: '#10b981' }}>★</div>
+                            </Link>
+                        ))}
+                    </div>
+                    <hr style={{ borderColor: '#333', margin: '2rem 0' }} />
+                </div>
+            )}
+
+            <h2 className={styles.sectionTitle} style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem' }}>Community</h2>
             <div className={styles.userList}>
-                {users.map((user: any) => (
+                {users.filter((u: any) => !friends.find(f => f.id === u.id)).map((user: any) => (
                     <Link href={`/dashboard/profile/${user.id}`} key={user.id} className={styles.userCard}>
                         <div className={styles.avatar}>
                             <img src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.name} />
