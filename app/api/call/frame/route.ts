@@ -23,12 +23,16 @@ export async function POST(req: Request) {
                 });
                 imageUrl = blob.url;
             } catch (blobError) {
-                console.error('[Frame] Vercel Blob upload failed:', blobError);
-                imageUrl = "https://placehold.co/600x400?text=Upload+Failed";
+                console.error('[Frame] Vercel Blob upload failed, falling back to Base64:', blobError);
+                // Convert to Base64
+                const buffer = Buffer.from(await file.arrayBuffer());
+                imageUrl = `data:image/jpeg;base64,${buffer.toString('base64')}`;
             }
         } else {
-            console.warn('[Frame] No valid BLOB_READ_WRITE_TOKEN found. Using placeholder. Token present:', !!blobToken, 'Token length:', blobToken?.length ?? 0);
-            imageUrl = "https://placehold.co/600x400?text=Token+Missing";
+            console.warn('[Frame] No valid BLOB_READ_WRITE_TOKEN found. Using Base64 storage fallback.');
+            // Convert to Base64
+            const buffer = Buffer.from(await file.arrayBuffer());
+            imageUrl = `data:image/jpeg;base64,${buffer.toString('base64')}`;
         }
 
         // Verify session exists
