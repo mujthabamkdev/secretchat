@@ -84,22 +84,22 @@ async function main() {
     });
 
     console.log('🌱 Seeding 1,000 dummy users...');
-    // const users = generateUsers(1000);
+    const users = generateUsers(1000);
 
-    // // Batch insert in chunks of 50
-    // for (let i = 0; i < users.length; i += 50) {
-    //     const chunk = users.slice(i, i + 50);
-    //     await Promise.all(
-    //         chunk.map((u) =>
-    //             prisma.user.upsert({
-    //                 where: { email: u.email },
-    //                 update: {},
-    //                 create: u,
-    //             })
-    //         )
-    //     );
-    //     console.log(`  ✓ ${Math.min(i + 50, users.length)} / ${users.length}`);
-    // }
+    // Batch insert in chunks of 50
+    for (let i = 0; i < users.length; i += 50) {
+        const chunk = users.slice(i, i + 50);
+        await Promise.all(
+            chunk.map((u) =>
+                prisma.user.upsert({
+                    where: { email: u.email },
+                    update: {},
+                    create: u,
+                })
+            )
+        );
+        console.log(`  ✓ ${Math.min(i + 50, users.length)} / ${users.length}`);
+    }
 
     const total = await prisma.user.count();
     console.log(`\n✅ Done! Total users in database: ${total}`);
