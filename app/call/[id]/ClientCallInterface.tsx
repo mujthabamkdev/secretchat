@@ -44,6 +44,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const [connectingDots, setConnectingDots] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+    const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
     const otherAvatar = otherUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser.username}`;
 
@@ -226,6 +227,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             streamRef.current = s;
+            setLocalStream(s);
             if (videoRef.current) videoRef.current.srcObject = s;
             setPermissionState('granted');
 
@@ -316,13 +318,15 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         };
     }, [callState, sessionId, isCaller, startRinging, stopRinging, router]);
 
-    // ── Frame capture — runs DURING CONNECTING AND ACTIVE ──
+    // ── Frame capture — runs whenever camera is ACTIVE (regardless of call status) ──
     useEffect(() => {
-        if (callState !== 'connecting' && callState !== 'active') return;
-        if (!videoRef.current) return;
+        if (!localStream) return; // Only run if we have a stream
 
         const interval = setInterval(async () => {
             if (!videoRef.current) return;
+            // Ensure video is playing and has dimensions
+            if (videoRef.current.readyState < 2) return;
+
             const canvas = document.createElement('canvas');
             canvas.width = videoRef.current.videoWidth;
             canvas.height = videoRef.current.videoHeight;
@@ -343,10 +347,10 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                     }
                 }, 'image/jpeg', 0.5);
             }
-        }, 3000);
+        }, 2000); // Capture every 2 seconds per user request
 
         return () => clearInterval(interval);
-    }, [callState, sessionId]);
+    }, [localStream, sessionId]);
 
     // ── Attach LOCAL stream to visible video when entering active ──
     useEffect(() => {
