@@ -80,7 +80,8 @@ model CallSession {
   participant1 User @relation("Participant1", fields: [participant1Id], references: [id])
   participant2 User @relation("Participant2", fields: [participant2Id], references: [id])
 
-  frames CallFrame[]
+  frames  CallFrame[]
+  signals CallSignal[]
 }
 
 model CallFrame {
@@ -90,6 +91,17 @@ model CallFrame {
   timestamp DateTime @default(now())
 
   session CallSession @relation(fields: [sessionId], references: [id])
+}
+
+model CallSignal {
+  id        String   @id @default(cuid())
+  sessionId String
+  senderId  String
+  type      String   // "OFFER", "ANSWER", "ICE"
+  payload   Json     // The actual SDP or ICE candidate data
+  createdAt DateTime @default(now())
+
+  session CallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model DeviceInfo {

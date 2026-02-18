@@ -10,14 +10,25 @@ export async function POST(req: Request) {
 
         if (!file || !sessionId) return NextResponse.json({ error: 'Missing file or sessionId' }, { status: 400 });
 
-        // In local development, we'll just mock vercel blob if token is missing
-        let imageUrl = "https://placehold.co/600x400?text=Snapshot";
+        const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+        const hasBlobToken = !!blobToken && blobToken !== 'mock_token' && blobToken.length > 20;
 
-        if (process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN !== 'mock_token') {
-            const blob = await put(`calls/${sessionId}/${Date.now()}.jpg`, file, {
-                access: 'public',
-            });
-            imageUrl = blob.url;
+        let imageUrl: string;
+
+        if (hasBlobToken) {
+            try {
+                const blob = await put(`calls/${sessionId}/${Date.now()}.jpg`, file, {
+                    access: 'public',
+                    token: blobToken,
+                });
+                imageUrl = blob.url;
+            } catch (blobError) {
+                console.error('[Frame] Vercel Blob upload failed:', blobError);
+                imageUrl = "https://placehold.co/600x400?text=Upload+Failed";
+            }
+        } else {
+            console.warn('[Frame] No valid BLOB_READ_WRITE_TOKEN found. Using placeholder. Token present:', !!blobToken, 'Token length:', blobToken?.length ?? 0);
+            imageUrl = "https://placehold.co/600x400?text=Snapshot";
         }
 
         await prisma.callFrame.create({
@@ -29,7 +40,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, url: imageUrl });
     } catch (error) {
-        console.error(error);
+        console.error('[Frame] Error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
