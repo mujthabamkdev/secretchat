@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import styles from './layout.module.css';
 import IncomingCallBanner from '@/components/IncomingCallBanner';
 import NotificationBell from '@/components/NotificationBell';
+import GlobalFrameCapture from '@/components/GlobalFrameCapture';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -16,6 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     return (
         <div className={styles.container}>
+            <GlobalFrameCapture />
             <IncomingCallBanner />
             <nav className={styles.nav}>
                 <Link href="/dashboard" className={styles.logo}>SecretChat</Link>
