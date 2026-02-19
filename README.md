@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SecretChat
+
+SecretChat is a secure and private communication platform designed for seamless 1-on-1 video calling and instant messaging. Built with modern web technologies, it prioritizes user privacy and real-time interaction.
+
+## Features
+
+- **Secure Video Calls**: High-quality, peer-to-peer video calls using WebRTC. Includes screenshot protection and camera/mic controls.
+- **Friend System**: Send, accept, and manage friend requests. Block unwanted users.
+- **Micro-Social Network**: Profile pages with avatars and status updates.
+- **Moderation Tools**: Built-in reporting system and automatic frame capture for administrative review to ensure a safe environment.
+- **Admin Dashboard**: Comprehensive admin panel for managing users and reviewing reports.
+
+## Technology Stack
+
+- **Frontend**: [Next.js](https://nextjs.org) (App Router), React, TailwindCSS
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL (via Prisma ORM), SQLite for local development
+- **Real-time**: WebRTC for video/audio, Server-Sent Events (SSE) or Polling for signaling
+- **Storage**: Vercel Blob (for avatars/images)
+- **Deployment**: Vercel
 
 ## Getting Started
 
-First, run the development server:
+1.  **Clone the repository:**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+    ```bash
+    git clone https://github.com/mujthabamkdev/secretchat.git
+    cd secretchat
+    ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2.  **Install dependencies:**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    ```bash
+    npm install
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3.  **Set up Environment Variables:**
 
-## Learn More
+    Create a `.env` file in the root directory and add your database connection string and other secrets (see `.env.example` if available).
 
-To learn more about Next.js, take a look at the following resources:
+    ```env
+    DATABASE_URL="file:./dev.db" # Or your PostgreSQL URL
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4.  **Run Database Migrations:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    ```bash
+    npx prisma migrate dev
+    ```
 
-## Deploy on Vercel
+5.  **Start the development server:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    ```bash
+    npm run dev
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Project Structure
+
+-   `app/`: Next.js App Router pages and API routes.
+-   `components/`: Reusable React components.
+-   `prisma/`: Database schema and migrations.
+-   `public/`: Static assets.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+## License
+
+[MIT](LICENSE)
