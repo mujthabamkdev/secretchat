@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import styles from '../page.module.css';
 
 export default async function ChatsPage() {
     const cookieStore = await cookies();
@@ -63,13 +64,11 @@ export default async function ChatsPage() {
                     <Link
                         href={`/dashboard/chat/${chat.id}`}
                         key={chat.id}
+                        className={styles.userCard}
                         style={{
                             display: 'flex', alignItems: 'center', padding: '16px',
-                            background: 'var(--surface)', border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius)', textDecoration: 'none', transition: 'all 0.2s'
+                            textDecoration: 'none', transition: 'all 0.2s', borderColor: 'var(--border)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#10b981'}
-                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
                     >
                         <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', marginRight: '16px', background: '#262626', flexShrink: 0 }}>
                             <img src={chat.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${chat.username}`} alt={chat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
