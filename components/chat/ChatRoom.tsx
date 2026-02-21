@@ -142,7 +142,11 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
                     const isGrouped = prevMsg && prevMsg.senderId === msg.senderId;
 
                     return (
-                        <div key={msg.id} style={{ marginTop: isGrouped ? '2px' : '10px' }}>
+                        <div key={msg.id} style={{
+                            marginTop: isGrouped ? '2px' : '10px',
+                            display: 'flex',
+                            justifyContent: isOwn ? 'flex-end' : 'flex-start'
+                        }}>
                             <MessageBubble
                                 message={msg}
                                 isOwn={isOwn}
@@ -157,7 +161,7 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
 
             <ChatInput
                 friendId={friendId}
-                onSend={(newMsg) => setMessages(prev => [...prev, newMsg])}
+                onSend={(newMsg: Message) => setMessages(prev => [...prev, newMsg])}
                 defaultEphemeral={autoDisappear}
             />
         </div>

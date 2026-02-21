@@ -18,8 +18,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
+        if (!process.env.BLOB_READ_WRITE_TOKEN) {
+            console.error('CRITICAL: BLOB_READ_WRITE_TOKEN is not set in environment variables.');
+        }
+
         const { url } = await put(`chat/${userId}-${Date.now()}-${file.name}`, file, {
             access: 'public',
+            token: process.env.BLOB_READ_WRITE_TOKEN,
         });
 
         return NextResponse.json({ url });
