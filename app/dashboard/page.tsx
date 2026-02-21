@@ -88,32 +88,43 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                     <h2 className={styles.sectionTitle} style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem', marginTop: '2rem' }}>My Connections</h2>
                     <div className={styles.userList}>
                         {friends.map((friend: any) => (
-                            <Link href={`/dashboard/chat/${friend.id}`} key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981', textDecoration: 'none' }}>
-                                <div className={styles.avatar}>
-                                    <img src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`} alt={friend.name} />
-                                </div>
-                                <div className={styles.userInfo} style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div className={styles.userName}>{friend.name}</div>
-                                        {friend.latestMessage && (
-                                            <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
-                                                {new Date(friend.latestMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </div>
-                                        )}
+                            <div key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Link href={`/dashboard/profile/${friend.id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flex: 1, minWidth: 0, paddingRight: '12px' }}>
+                                    <div className={styles.avatar}>
+                                        <img src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`} alt={friend.name} />
                                     </div>
-                                    <div className={styles.userHandle}>@{friend.username}</div>
-                                    <div style={{
-                                        fontSize: '0.8rem', color: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? '#10b981' : '#888',
-                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '4px', fontStyle: friend.latestMessage?.type.includes('EPHEMERAL') ? 'italic' : 'normal',
-                                        fontWeight: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? 'bold' : 'normal'
-                                    }}>
-                                        {friend.latestMessage
-                                            ? (friend.latestMessage.type.includes('EPHEMERAL') ? '🔥 Disappearing message' : (friend.latestMessage.content || 'Media message'))
-                                            : 'Start a conversation'}
+                                    <div className={styles.userInfo} style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div className={styles.userName}>{friend.name}</div>
+                                            {friend.latestMessage && (
+                                                <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                                                    {new Date(friend.latestMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className={styles.userHandle}>@{friend.username}</div>
+                                        <div style={{
+                                            fontSize: '0.8rem', color: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? '#10b981' : '#888',
+                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '4px', fontStyle: friend.latestMessage?.type.includes('EPHEMERAL') ? 'italic' : 'normal',
+                                            fontWeight: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? 'bold' : 'normal'
+                                        }}>
+                                            {friend.latestMessage
+                                                ? (friend.latestMessage.type.includes('EPHEMERAL') ? '🔥 Disappearing message' : (friend.latestMessage.content || 'Media message'))
+                                                : 'Start a conversation'}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className={styles.chevron} style={{ color: '#10b981' }}>💬</div>
-                            </Link>
+                                </Link>
+                                <Link
+                                    href={`/dashboard/chat/${friend.id}`}
+                                    style={{
+                                        padding: '8px 12px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981',
+                                        borderRadius: '8px', fontSize: '1.2rem', textDecoration: 'none', transition: 'all 0.2s'
+                                    }}
+                                    title="Go to Chat"
+                                >
+                                    💬
+                                </Link>
+                            </div>
                         ))}
                     </div>
                     <hr style={{ borderColor: '#333', margin: '2rem 0' }} />

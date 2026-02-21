@@ -23,6 +23,7 @@ interface Props {
 export default function ChatRoom({ currentUserId, friendId, friendName }: Props) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
+    const [autoDisappear, setAutoDisappear] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Fetch messages
@@ -94,25 +95,61 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
         }
     };
 
+    const handleDelete = async (messageId: string) => {
+        try {
+            await fetch('/api/chat/messages/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageId })
+            });
+            setMessages(prev => prev.filter(m => m.id !== messageId));
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     if (loading) return <div style={{ color: '#888', textAlign: 'center', marginTop: '20px' }}>Loading...</div>;
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '12px' }}>
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '12px', padding: '10px' }}>
+            {/* Control Bar inside Chat Room */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px' }}>
+                <button
+                    onClick={() => setAutoDisappear(!autoDisappear)}
+                    style={{
+                        background: autoDisappear ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                        color: autoDisappear ? '#ef4444' : '#9ca3af',
+                        border: `1px solid ${autoDisappear ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.1)'}`,
+                        padding: '6px 14px', borderRadius: '16px', fontSize: '0.8rem',
+                        fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                        display: 'flex', alignItems: 'center', gap: '6px'
+                    }}
+                >
+                    🔥 <span>Default to Disappearing: {autoDisappear ? 'ON' : 'OFF'}</span>
+                </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingBottom: '20px', paddingLeft: '8px', paddingRight: '8px' }}>
                 {messages.length === 0 && (
                     <div style={{ textAlign: 'center', color: '#666', marginTop: 'auto', marginBottom: 'auto' }}>
                         No messages yet. Send a secret!
                     </div>
                 )}
-                {messages.map(msg => {
+                {messages.map((msg, index) => {
                     const isOwn = msg.senderId === currentUserId;
+                    const prevMsg = messages[index - 1];
+                    // If previous message is from same sender, reduce gap
+                    const isGrouped = prevMsg && prevMsg.senderId === msg.senderId;
+
                     return (
-                        <MessageBubble
-                            key={msg.id}
-                            message={msg}
-                            isOwn={isOwn}
-                            onBurn={() => handleBurn(msg.id)}
-                        />
+                        <div key={msg.id} style={{ marginTop: isGrouped ? '2px' : '10px' }}>
+                            <MessageBubble
+                                message={msg}
+                                isOwn={isOwn}
+                                onBurn={() => handleBurn(msg.id)}
+                                onDelete={isOwn ? () => handleDelete(msg.id) : undefined}
+                            />
+                        </div>
                     );
                 })}
                 <div ref={messagesEndRef} />
@@ -121,13 +158,14 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
             <ChatInput
                 friendId={friendId}
                 onSend={(newMsg) => setMessages(prev => [...prev, newMsg])}
+                defaultEphemeral={autoDisappear}
             />
         </div>
     );
 }
 
 // Sub-component for Message Bubble
-function MessageBubble({ message, isOwn, onBurn }: { message: Message, isOwn: boolean, onBurn: () => void }) {
+function MessageBubble({ message, isOwn, onBurn, onDelete }: { message: Message, isOwn: boolean, onBurn: () => void, onDelete?: () => void }) {
     const [viewingEphemeral, setViewingEphemeral] = useState(false);
 
     const isEphemeral = message.type.startsWith('EPHEMERAL_');
@@ -203,6 +241,18 @@ function MessageBubble({ message, isOwn, onBurn }: { message: Message, isOwn: bo
                 {new Date(message.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 {receiptIcon}
             </div>
+
+            {onDelete && (
+                <button
+                    onClick={onDelete}
+                    style={{ position: 'absolute', top: '10px', left: '-28px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', opacity: 0.6, fontSize: '0.9rem', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Delete message"
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+                >
+                    ✕
+                </button>
+            )}
         </div>
     );
 }

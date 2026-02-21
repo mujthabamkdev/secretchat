@@ -22,6 +22,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <nav className={styles.nav}>
                 <Link href="/dashboard" className={styles.logo}>SecretChat</Link>
                 <div className={styles.actions}>
+                    <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#10b981', marginRight: '8px' }}>
+                        💬 Chats
+                    </Link>
                     <NotificationBell />
                     {isAdmin && (
                         <Link href="/admin" className={styles.navLink} style={{ color: '#818cf8' }}>
