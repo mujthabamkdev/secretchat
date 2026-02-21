@@ -114,9 +114,14 @@ export default function ProfileActions({ targetUserId, targetUserName, currentUs
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
                 {status === 'APPROVED' && (
                     <>
-                        <button onClick={startCall} className="btn btn-primary" disabled={loading}>
-                            {loading ? 'Initializing...' : 'Start Call'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <button onClick={() => router.push(`/dashboard/chat/${targetUserId}`)} className="btn btn-primary" disabled={loading}>
+                                💬 Message
+                            </button>
+                            <button onClick={startCall} className="btn btn-primary" disabled={loading}>
+                                {loading ? 'Initializing...' : 'Start Call'}
+                            </button>
+                        </div>
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button onClick={() => setShowReport(true)} style={{
                                 padding: '6px 14px', borderRadius: '8px',

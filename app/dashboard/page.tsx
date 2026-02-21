@@ -45,9 +45,24 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         }
     }) : [];
 
-    const friends = connections.map(conn =>
-        conn.senderId === currentUserId ? conn.receiver : conn.sender
-    );
+    const friends = await Promise.all(connections.map(async conn => {
+        const friend = conn.senderId === currentUserId ? conn.receiver : conn.sender;
+
+        // Find latest message between currentUserId and friend.id
+        const latestMessage = await prisma.message.findFirst({
+            where: {
+                conversation: {
+                    AND: [
+                        { participants: { some: { id: currentUserId } } },
+                        { participants: { some: { id: friend.id } } }
+                    ]
+                }
+            },
+            orderBy: { sentAt: 'desc' }
+        });
+
+        return { ...friend, latestMessage };
+    }));
 
     return (
         <div className="container">
@@ -73,15 +88,31 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                     <h2 className={styles.sectionTitle} style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem', marginTop: '2rem' }}>My Connections</h2>
                     <div className={styles.userList}>
                         {friends.map((friend: any) => (
-                            <Link href={`/dashboard/profile/${friend.id}`} key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981' }}>
+                            <Link href={`/dashboard/chat/${friend.id}`} key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981', textDecoration: 'none' }}>
                                 <div className={styles.avatar}>
                                     <img src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`} alt={friend.name} />
                                 </div>
-                                <div className={styles.userInfo}>
-                                    <div className={styles.userName}>{friend.name}</div>
+                                <div className={styles.userInfo} style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div className={styles.userName}>{friend.name}</div>
+                                        {friend.latestMessage && (
+                                            <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                                                {new Date(friend.latestMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className={styles.userHandle}>@{friend.username}</div>
+                                    <div style={{
+                                        fontSize: '0.8rem', color: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? '#10b981' : '#888',
+                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '4px', fontStyle: friend.latestMessage?.type.includes('EPHEMERAL') ? 'italic' : 'normal',
+                                        fontWeight: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? 'bold' : 'normal'
+                                    }}>
+                                        {friend.latestMessage
+                                            ? (friend.latestMessage.type.includes('EPHEMERAL') ? '🔥 Disappearing message' : (friend.latestMessage.content || 'Media message'))
+                                            : 'Start a conversation'}
+                                    </div>
                                 </div>
-                                <div className={styles.chevron} style={{ color: '#10b981' }}>★</div>
+                                <div className={styles.chevron} style={{ color: '#10b981' }}>💬</div>
                             </Link>
                         ))}
                     </div>
