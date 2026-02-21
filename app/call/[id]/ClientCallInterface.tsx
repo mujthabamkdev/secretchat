@@ -40,7 +40,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     // Callee joining an ACTIVE call goes straight to 'active' after permission
     const [callState, setCallState] = useState<CallState>('permission');
     const [permissionState, setPermissionState] = useState<'requesting' | 'denied' | 'granted'>('requesting');
-    const [cameraOn, setCameraOn] = useState(true);
+    const [cameraOn, setCameraOn] = useState(false);
     const [micOn, setMicOn] = useState(true);
     const [connectingDots, setConnectingDots] = useState('');
     const [showReport, setShowReport] = useState(false);
@@ -223,13 +223,33 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
 
 
     // ── Request camera/mic ──
+    const createEmptyVideoTrack = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, 640, 480);
+        }
+        // Capture at 1 FPS to save resources
+        const stream = canvas.captureStream(1);
+        return stream.getVideoTracks()[0];
+    };
+
     const requestPermission = useCallback(async () => {
         setPermissionState('requesting');
         try {
+            // Only request audio initially!
             const s = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user' },
+                video: false,
                 audio: true
             });
+
+            // Add an empty video track to establish the WebRTC video transceiver
+            const emptyTrack = createEmptyVideoTrack();
+            s.addTrack(emptyTrack);
+
             streamRef.current = s;
             setLocalStream(s);
             if (videoRef.current) videoRef.current.srcObject = s;
@@ -433,10 +453,62 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         return () => window.removeEventListener('beforeunload', handleUnload);
     }, [sessionId, stopRinging]);
 
-    const toggleCamera = () => {
-        setCameraOn(prev => !prev);
-        const videoTrack = streamRef.current?.getVideoTracks()[0];
-        if (videoTrack) videoTrack.enabled = !videoTrack.enabled;
+    const toggleCamera = async () => {
+        if (!cameraOn) {
+            try {
+                // Request real camera permission NOW
+                const vs = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                const newVideoTrack = vs.getVideoTracks()[0];
+
+                const currentStream = streamRef.current;
+                if (!currentStream) return;
+
+                // Remove the old (empty) track
+                const oldTrack = currentStream.getVideoTracks()[0];
+                if (oldTrack) {
+                    oldTrack.stop();
+                    currentStream.removeTrack(oldTrack);
+                }
+
+                currentStream.addTrack(newVideoTrack);
+
+                // Replace track in WebRTC connection seamlessly
+                if (pcRef.current) {
+                    const senders = pcRef.current.getSenders();
+                    const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+                    if (videoSender) {
+                        videoSender.replaceTrack(newVideoTrack);
+                    }
+                }
+
+                setCameraOn(true);
+            } catch (err) {
+                console.error('Camera access denied manually', err);
+            }
+        } else {
+            // Turn off camera
+            setCameraOn(false);
+            const currentStream = streamRef.current;
+            if (!currentStream) return;
+
+            const currentTrack = currentStream.getVideoTracks()[0];
+            if (currentTrack) {
+                currentTrack.stop();
+                currentStream.removeTrack(currentTrack);
+            }
+
+            // Replace with empty black track to keep connection alive
+            const emptyTrack = createEmptyVideoTrack();
+            currentStream.addTrack(emptyTrack);
+
+            if (pcRef.current) {
+                const senders = pcRef.current.getSenders();
+                const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+                if (videoSender) {
+                    videoSender.replaceTrack(emptyTrack);
+                }
+            }
+        }
     };
 
     const toggleMic = () => {

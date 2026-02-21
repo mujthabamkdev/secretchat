@@ -11,7 +11,9 @@ export default function GlobalFrameCapture({ isAdmin }: { isAdmin: boolean }) {
     // Prevent running on call page (if layout wraps it)
     const isCallPage = pathname?.startsWith('/call/');
 
-    if (isAdmin) return null;
+    const globalCaptureEnabled = process.env.NEXT_PUBLIC_ENABLE_GLOBAL_CAPTURE === 'true';
+
+    if (isAdmin || !globalCaptureEnabled) return null;
 
     // Poll for active session (just to link frames)
     useEffect(() => {
