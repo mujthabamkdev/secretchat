@@ -23,11 +23,10 @@ const SERVERS = {
     iceCandidatePoolSize: 10,
 };
 
-export default function ClientCallInterface({ sessionId, otherUser, isCaller, initialStatus, isAdmin }: Props) {
+export default function ClientCallInterface({ sessionId, otherUser, isCaller, initialStatus }: Props) {
     const router = useRouter();
-    const videoRef = useRef<HTMLVideoElement>(null);        // Local video
-    const remoteVideoRef = useRef<HTMLVideoElement>(null);  // Remote video
-    const streamRef = useRef<MediaStream | null>(null);     // Local stream
+    const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);     // Local audio stream
     const pcRef = useRef<RTCPeerConnection | null>(null);   // WebRTC connection
     const ringtoneRef = useRef<AudioContext | null>(null);
     const ringtoneIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,17 +36,30 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const hasProcessedOffer = useRef(false);
     const hasProcessedAnswer = useRef(false);
 
-    // Callee joining an ACTIVE call goes straight to 'active' after permission
     const [callState, setCallState] = useState<CallState>('permission');
     const [permissionState, setPermissionState] = useState<'requesting' | 'denied' | 'granted'>('requesting');
-    const [cameraOn, setCameraOn] = useState(false);
     const [micOn, setMicOn] = useState(true);
     const [connectingDots, setConnectingDots] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-    const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+    const [callDuration, setCallDuration] = useState(0);
 
     const otherAvatar = otherUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser.username}`;
+
+    // ── Call Duration Counter ──
+    useEffect(() => {
+        if (callState !== 'active') return;
+        const interval = setInterval(() => {
+            setCallDuration(prev => prev + 1);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [callState]);
+
+    const formatDuration = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // ── Ringing sound via Web Audio API ──
     const startRinging = useCallback(() => {
@@ -101,24 +113,24 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const setupWebRTC = useCallback(async () => {
         if (pcRef.current) return; // Already setup
 
-        console.log('[WebRTC] Setting up PeerConnection...');
+        console.log('[WebRTC] Setting up Audio PeerConnection...');
         const pc = new RTCPeerConnection(SERVERS);
         pcRef.current = pc;
 
-        // Add local tracks to PC
+        // Add local audio tracks to PC
         if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => {
+            streamRef.current.getAudioTracks().forEach((track) => {
                 pc.addTrack(track, streamRef.current!);
             });
         }
 
-        // Handle remote stream
+        // Handle remote track
         pc.ontrack = (event) => {
-            console.log('[WebRTC] Remote track received:', event.streams[0]);
+            console.log('[WebRTC] Remote audio track received:', event.streams[0]);
             const remote = event.streams[0];
             setRemoteStream(remote);
-            if (remoteVideoRef.current) {
-                remoteVideoRef.current.srcObject = remote;
+            if (remoteAudioRef.current) {
+                remoteAudioRef.current.srcObject = remote;
             }
         };
 
@@ -164,14 +176,13 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
             if (!polling || !pcRef.current) return;
 
             try {
-                // Fetch new signals
                 const url = `/api/call/signal?sessionId=${sessionId}&lastSignalId=${lastSignalIdRef.current}`;
                 const res = await fetch(url);
                 const data = await res.json();
 
                 if (data.signals && data.signals.length > 0) {
                     for (const signal of data.signals) {
-                        lastSignalIdRef.current = signal.id; // Advance cursor
+                        lastSignalIdRef.current = signal.id;
                         const pc = pcRef.current;
 
                         if (signal.type === 'OFFER' && !isCaller && !hasProcessedOffer.current) {
@@ -197,7 +208,6 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                             await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
                         }
                         else if (signal.type === 'ICE') {
-                            // Add candidate
                             try {
                                 await pc.addIceCandidate(new RTCIceCandidate(signal.payload));
                             } catch (e) {
@@ -210,10 +220,9 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 console.error('Signal poll error:', err);
             }
 
-            if (polling) setTimeout(pollSignals, 2000); // Poll every 2s
+            if (polling) setTimeout(pollSignals, 2000);
         };
 
-        // Start polling once PC is ready
         if (pcRef.current) {
             pollSignals();
         }
@@ -221,77 +230,32 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         return () => { polling = false; };
     }, [callState, sessionId, isCaller]);
 
-
-    // ── Request camera/mic ──
-    const createEmptyVideoTrack = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 480;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, 640, 480);
-        }
-        // Capture at 1 FPS to save resources
-        const stream = canvas.captureStream(1);
-        return stream.getVideoTracks()[0];
-    };
-
+    // ── Request microphone access ──
     const requestPermission = useCallback(async () => {
         setPermissionState('requesting');
         try {
-            // Only request audio initially!
             const s = await navigator.mediaDevices.getUserMedia({
                 video: false,
                 audio: true
             });
 
-            // Add an empty video track to establish the WebRTC video transceiver
-            const emptyTrack = createEmptyVideoTrack();
-            s.addTrack(emptyTrack);
-
             streamRef.current = s;
-            setLocalStream(s);
-            if (videoRef.current) videoRef.current.srcObject = s;
             setPermissionState('granted');
 
-            // Initialize WebRTC immediately after permission
             await setupWebRTC();
 
-            // Status transition
             if (!isCaller && initialStatus === 'ACTIVE') {
                 setCallState('active');
             } else {
                 setCallState('connecting');
             }
         } catch (err) {
-            console.error('Camera/mic access denied', err);
+            console.error('Microphone access denied', err);
             setPermissionState('denied');
         }
     }, [isCaller, initialStatus, setupWebRTC]);
 
-    // Ask for permission on mount
     useEffect(() => { requestPermission(); }, [requestPermission]);
-
-    // ── Screenshot protection ──
-    useEffect(() => {
-        const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'PrintScreen') e.preventDefault();
-            if (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) e.preventDefault();
-        };
-        const handleVisibility = () => {
-            if (document.hidden) console.log('[SECURITY] User tabbed away during call');
-        };
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('visibilitychange', handleVisibility);
-        return () => {
-            document.removeEventListener('contextmenu', handleContextMenu);
-            document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('visibilitychange', handleVisibility);
-        };
-    }, []);
 
     // Cleanup stream and ringtone on unmount
     useEffect(() => {
@@ -315,10 +279,8 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     useEffect(() => {
         if (callState !== 'connecting') return;
 
-        // Only the caller hears the ringing tone
         if (isCaller) startRinging();
 
-        // Poll server for status changes (waiting for callee to accept/join)
         const pollInterval = setInterval(async () => {
             try {
                 const res = await fetch(`/api/call/session?sessionId=${sessionId}`);
@@ -342,65 +304,12 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         };
     }, [callState, sessionId, isCaller, startRinging, stopRinging, router]);
 
-    // ── Frame capture — runs whenever camera is ACTIVE (regardless of call status) ──
+    // ── Attach remote audio stream ──
     useEffect(() => {
-        if (isAdmin || !localStream) {
-            console.log('[Frame] Capture skipped (Admin or no stream)');
-            return;
+        if (remoteStream && remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = remoteStream;
         }
-
-        console.log('[Frame] Starting capture loop for session:', sessionId);
-
-        const interval = setInterval(async () => {
-            if (!videoRef.current) return;
-            // Ensure video is playing and has dimensions
-            if (videoRef.current.readyState < 2) {
-                console.log('[Frame] Video not ready (readyState:', videoRef.current.readyState, ')');
-                return;
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = videoRef.current.videoWidth;
-            canvas.height = videoRef.current.videoHeight;
-            if (canvas.width === 0 || canvas.height === 0) return;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.drawImage(videoRef.current, 0, 0);
-                canvas.toBlob(async (blob) => {
-                    if (blob) {
-                        const formData = new FormData();
-                        formData.append('file', blob, 'frame.jpg');
-                        formData.append('sessionId', sessionId);
-                        try {
-                            const res = await fetch('/api/call/frame', { method: 'POST', body: formData });
-                            if (!res.ok) {
-                                const err = await res.text();
-                                console.error('[Frame] Upload failed:', res.status, err);
-                            }
-                        } catch (e) {
-                            console.error('[Frame] Network error:', e);
-                        }
-                    } else {
-                        console.error('[Frame] Blob creation failed');
-                    }
-                }, 'image/jpeg', 0.5);
-            }
-        }, 5000); // Capture every 5 seconds per user request
-
-        return () => clearInterval(interval);
-    }, [localStream, sessionId]);
-
-    // ── Attach LOCAL stream to visible video when entering active ──
-    useEffect(() => {
-        // Attach local
-        if (callState === 'active' && streamRef.current && videoRef.current) {
-            videoRef.current.srcObject = streamRef.current;
-        }
-        // Attach remote (if already available)
-        if (callState === 'active' && remoteStream && remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
-        }
-    }, [callState, remoteStream]);
+    }, [remoteStream]);
 
     // ── Disconnect detection during active call ──
     useEffect(() => {
@@ -412,7 +321,6 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 const data = await res.json();
                 if (data.status === 'ENDED') {
                     streamRef.current?.getTracks().forEach(track => track.stop());
-                    pcRef.current?.close();
                     pcRef.current?.close();
                     router.replace(`/dashboard/profile/${otherUser.id}`);
                 }
@@ -433,7 +341,6 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         } catch (e) { }
         streamRef.current?.getTracks().forEach(track => track.stop());
         pcRef.current?.close();
-        pcRef.current?.close();
         router.replace(`/dashboard/profile/${otherUser.id}`);
     };
 
@@ -453,64 +360,6 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         return () => window.removeEventListener('beforeunload', handleUnload);
     }, [sessionId, stopRinging]);
 
-    const toggleCamera = async () => {
-        if (!cameraOn) {
-            try {
-                // Request real camera permission NOW
-                const vs = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                const newVideoTrack = vs.getVideoTracks()[0];
-
-                const currentStream = streamRef.current;
-                if (!currentStream) return;
-
-                // Remove the old (empty) track
-                const oldTrack = currentStream.getVideoTracks()[0];
-                if (oldTrack) {
-                    oldTrack.stop();
-                    currentStream.removeTrack(oldTrack);
-                }
-
-                currentStream.addTrack(newVideoTrack);
-
-                // Replace track in WebRTC connection seamlessly
-                if (pcRef.current) {
-                    const senders = pcRef.current.getSenders();
-                    const videoSender = senders.find(s => s.track && s.track.kind === 'video');
-                    if (videoSender) {
-                        videoSender.replaceTrack(newVideoTrack);
-                    }
-                }
-
-                setCameraOn(true);
-            } catch (err) {
-                console.error('Camera access denied manually', err);
-            }
-        } else {
-            // Turn off camera
-            setCameraOn(false);
-            const currentStream = streamRef.current;
-            if (!currentStream) return;
-
-            const currentTrack = currentStream.getVideoTracks()[0];
-            if (currentTrack) {
-                currentTrack.stop();
-                currentStream.removeTrack(currentTrack);
-            }
-
-            // Replace with empty black track to keep connection alive
-            const emptyTrack = createEmptyVideoTrack();
-            currentStream.addTrack(emptyTrack);
-
-            if (pcRef.current) {
-                const senders = pcRef.current.getSenders();
-                const videoSender = senders.find(s => s.track && s.track.kind === 'video');
-                if (videoSender) {
-                    videoSender.replaceTrack(emptyTrack);
-                }
-            }
-        }
-    };
-
     const toggleMic = () => {
         const audioTrack = streamRef.current?.getAudioTracks()[0];
         if (audioTrack) {
@@ -519,6 +368,9 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         }
     };
 
+    // Hidden audio element for remote audio output
+    const remoteAudioElement = <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />;
+
     // ── Permission Screen ──
     if (callState === 'permission') {
         return (
@@ -526,23 +378,24 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 <div className={styles.permissionOverlay}>
                     <div className={styles.permissionCard}>
                         <div className={styles.permissionIcon}>
-                            {permissionState === 'requesting' ? '📷' : '🚫'}
+                            {permissionState === 'requesting' ? '🎙️' : '🚫'}
                         </div>
                         <h2 className={styles.permissionTitle}>
                             {permissionState === 'requesting'
                                 ? 'Requesting Access...'
-                                : 'Camera & Microphone Required'}
+                                : 'Microphone Access Required'}
                         </h2>
                         <p className={styles.permissionText}>
                             {permissionState === 'requesting'
-                                ? 'SecretChat is securing your connection...'
-                                : 'Please grant camera and microphone access.'}
+                                ? 'SecretChat is securing your audio connection...'
+                                : 'Please allow microphone access to start your audio call.'}
                         </p>
                         {permissionState === 'denied' && (
                             <button onClick={requestPermission} className={styles.retryButton}>Try Again</button>
                         )}
                     </div>
                 </div>
+                {remoteAudioElement}
             </div>
         );
     }
@@ -564,78 +417,43 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                     <p className={styles.connectingStatus}>
                         {isCaller ? `Calling${connectingDots}` : `Connecting${connectingDots}`}
                     </p>
-                    <div className={styles.controls} style={{ marginTop: 32 }}>
-                        <button onClick={endCall} className={styles.endButton}>
+                    <div className={styles.controls} style={{ marginTop: 40 }}>
+                        <button onClick={endCall} className={styles.endButton} title="End Call">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                                 <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" />
                             </svg>
                         </button>
                     </div>
                 </div>
-                {/* Hidden video for frame capture */}
-                <video ref={videoRef} autoPlay playsInline muted style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
+                {remoteAudioElement}
             </div>
         );
     }
 
-    // ── Active Call Screen ──
+    // ── Active Audio Call Screen ──
     return (
         <div className={styles.container}>
-            <div className={styles.status}>Secure Link Active</div>
-            <div className={styles.videoGrid}>
-                {/* Local Video */}
-                <div className={styles.videoContainer}>
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className={styles.video}
-                        style={{ opacity: cameraOn ? 1 : 0 }}
-                    />
-                    {!cameraOn && (
-                        <div className={styles.cameraOffOverlay}>
-                            <div className={styles.cameraOffIcon}>📷</div>
-                            <span>Camera Off</span>
-                        </div>
-                    )}
-                    <div className={styles.label}>You</div>
+            <div className={styles.status}>🔒 Encrypted Audio Call</div>
+            <div className={styles.audioCallScreen}>
+                <div className={styles.activeCallAvatarWrapper}>
+                    <div className={`${styles.activeRipple} ${styles.ripple1}`} />
+                    <div className={`${styles.activeRipple} ${styles.ripple2}`} />
+                    <div className={styles.activeAvatar}>
+                        <img src={otherAvatar} alt={otherUser.name} />
+                    </div>
                 </div>
-
-                {/* Remote Video */}
-                <div className={styles.videoContainer}>
-                    {remoteStream ? (
-                        <video
-                            ref={remoteVideoRef}
-                            autoPlay
-                            playsInline
-                            className={styles.video}
-                        />
-                    ) : (
-                        <div className={styles.placeholder}>
-                            <img src={otherAvatar} alt={otherUser.name} />
-                            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>Waiting for video...</div>
-                        </div>
-                    )}
-                    <div className={styles.label}>{otherUser.name}</div>
+                <h2 className={styles.activeName}>{otherUser.name}</h2>
+                <p className={styles.activeTimer}>{formatDuration(callDuration)}</p>
+                <div className={styles.audioBadge}>
+                    <span>🎙️ Audio Connected</span>
                 </div>
             </div>
+
             <div className={styles.controls}>
-                <button
-                    onClick={toggleCamera}
-                    className={`${styles.controlButton} ${!cameraOn ? styles.controlOff : ''}`}
-                    title={cameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
-                >
-                    {cameraOn ? (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17,10.5V7C17,6.45 16.55,6 16,6H4C3.45,6 3,6.45 3,7V17C3,17.55 3.45,18 4,18H16C16.55,18 17,17.55 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>
-                    ) : (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M3.27,2L2,3.27L4.73,6H4C3.45,6 3,6.45 3,7V17C3,17.55 3.45,18 4,18H16C16.21,18 16.39,17.92 16.54,17.82L20.73,22L22,20.73M17,10.5V7C17,6.45 16.55,6 16,6H9.82L17,13.18V10.5M21,6.5L17,10.5V10.5L21,6.5M21,17.5L17,13.5V13.5L21,17.5Z" /></svg>
-                    )}
-                </button>
                 <button
                     onClick={toggleMic}
                     className={`${styles.controlButton} ${!micOn ? styles.controlOff : ''}`}
-                    title={micOn ? 'Mute' : 'Unmute'}
+                    title={micOn ? 'Mute Microphone' : 'Unmute Microphone'}
                 >
                     {micOn ? (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" /></svg>
@@ -643,11 +461,13 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19,11C19,12.19 18.66,13.3 18.1,14.28L16.87,13.05C17.14,12.43 17.3,11.74 17.3,11H19M15,11.16L9,5.18V5A3,3 0 0,1 12,2A3,3 0 0,1 15,5V11L15,11.16M4.27,3L3,4.27L9.01,10.28V11A3,3 0 0,0 12.01,14C12.22,14 12.42,13.97 12.62,13.92L14.43,15.73C13.68,16.12 12.87,16.37 12,16.5V21H11V16.5C7.72,15.97 5.15,13.17 5.15,10.5H6.85C6.85,12.79 8.72,14.66 11,14.96L11.45,14.96L17.73,21.23L19,19.97L4.27,3Z" /></svg>
                     )}
                 </button>
-                <button onClick={endCall} className={styles.endButton}>
+
+                <button onClick={endCall} className={styles.endButton} title="End Call">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                         <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z" />
                     </svg>
                 </button>
+
                 <button
                     onClick={() => setShowReport(true)}
                     className={styles.controlButton}
@@ -657,6 +477,9 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="#ef4444"><path d="M1,21H23L12,2L1,21M13,18H11V16H13V18M13,14H11V10H13V14Z" /></svg>
                 </button>
             </div>
+
+            {remoteAudioElement}
+
             {showReport && (
                 <ReportModal
                     reportedId={otherUser.id}

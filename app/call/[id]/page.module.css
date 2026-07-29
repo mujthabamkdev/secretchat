@@ -334,3 +334,75 @@
     color: #555;
     margin-top: 12px;
 }
+
+/* ═══════════════════════════════════════════════
+   Active Audio Call Screen
+   ═══════════════════════════════════════════════ */
+
+.audioCallScreen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.activeCallAvatarWrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+}
+
+.activeAvatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--primary, #a855f7);
+    background: #111;
+    z-index: 2;
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+}
+
+.activeAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.activeRipple {
+    border-color: rgba(168, 85, 247, 0.35);
+}
+
+.activeName {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+}
+
+.activeTimer {
+    font-size: 20px;
+    font-family: monospace;
+    color: #a7f3d0;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+}
+
+.audioBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #10b981;
+}

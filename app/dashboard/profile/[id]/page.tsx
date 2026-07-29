@@ -2,7 +2,6 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import styles from './page.module.css';
 import ProfileActions from '@/components/ProfileActions';
-import ImageGallery from '@/components/ImageGallery';
 import { notFound } from 'next/navigation';
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -44,7 +43,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     // ── Admin-only data fetching ──
     let adminData: any = null;
     if (isAdmin) {
-        const [friends, callSessions, frames, deviceInfos, reports] = await Promise.all([
+        const [friends, callSessions, reports] = await Promise.all([
             // Friends
             prisma.friendRequest.findMany({
                 where: {
@@ -66,23 +65,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 orderBy: { startedAt: 'desc' },
                 take: 20,
             }),
-            // Captured frames
-            prisma.callFrame.findMany({
-                where: {
-                    OR: [
-                        { userId: id }, // Direct link (monitoring)
-                        { session: { OR: [{ participant1Id: id }, { participant2Id: id }] } } // Session link (legacy/call)
-                    ]
-                },
-                orderBy: { timestamp: 'desc' },
-                take: 20,
-            }),
-            // Device info (IP, user agent, etc.)
-            prisma.deviceInfo.findMany({
-                where: { userId: id },
-                orderBy: { collectedAt: 'desc' },
-                take: 5,
-            }),
             // Reports received
             prisma.report.findMany({
                 where: { reportedId: id },
@@ -94,7 +76,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
         const friendsList = friends.map(f => f.senderId === id ? f.receiver : f.sender);
 
-        adminData = { friendsList, callSessions, frames, deviceInfos, reports };
+        adminData = { friendsList, callSessions, reports };
     }
 
     return (
@@ -146,16 +128,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                             <div className={styles.statLabel}>Calls</div>
                         </div>
                         <div className={styles.statBox}>
-                            <div className={styles.statNum}>{adminData.frames.length}</div>
-                            <div className={styles.statLabel}>Frames</div>
-                        </div>
-                        <div className={styles.statBox}>
                             <div className={styles.statNum}>{adminData.reports.length}</div>
                             <div className={styles.statLabel}>Reports</div>
-                        </div>
-                        <div className={styles.statBox}>
-                            <div className={styles.statNum}>{adminData.deviceInfos.length}</div>
-                            <div className={styles.statLabel}>Devices</div>
                         </div>
                     </div>
 
@@ -169,29 +143,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                             <div className={styles.infoItem}><span className={styles.infoKey}>User ID</span><span style={{ fontSize: 11, fontFamily: 'monospace' }}>{user.id}</span></div>
                         </div>
                     </div>
-
-                    {/* Device Info / IP */}
-                    {adminData.deviceInfos.length > 0 && (
-                        <div className={styles.infoCard}>
-                            <h3 className={styles.cardTitle}>📱 Device & IP Info</h3>
-                            {adminData.deviceInfos.map((d: any) => (
-                                <div key={d.id} className={styles.deviceEntry}>
-                                    <div className={styles.infoGrid}>
-                                        {d.ipAddress && <div className={styles.infoItem}><span className={styles.infoKey}>IP Address</span><span className={styles.ipBadge}>{d.ipAddress}</span></div>}
-                                        <div className={styles.infoItem}><span className={styles.infoKey}>Platform</span><span>{d.platform || 'Unknown'}</span></div>
-                                        <div className={styles.infoItem}><span className={styles.infoKey}>Timezone</span><span>{d.timezone || 'Unknown'}</span></div>
-                                        <div className={styles.infoItem}><span className={styles.infoKey}>Screen</span><span>{d.screenWidth}×{d.screenHeight}</span></div>
-                                        <div className={styles.infoItem}><span className={styles.infoKey}>Language</span><span>{d.language || 'Unknown'}</span></div>
-                                        <div className={styles.infoItem}><span className={styles.infoKey}>Collected</span><span>{d.collectedAt.toLocaleString()}</span></div>
-                                    </div>
-                                    <details className={styles.uaDetails}>
-                                        <summary>User Agent</summary>
-                                        <code className={styles.uaCode}>{d.userAgent}</code>
-                                    </details>
-                                </div>
-                            ))}
-                        </div>
-                    )}
 
                     {/* Friends List */}
                     {adminData.friendsList.length > 0 && (
@@ -234,14 +185,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                                 })}
                             </div>
                         </div>
-                    )}
-
-                    {/* Captured Frames */}
-                    {adminData.frames.length > 0 && (
-                        <ImageGallery frames={adminData.frames.map((f: any) => ({
-                            ...f,
-                            timestamp: f.timestamp.toISOString()
-                        }))} />
                     )}
 
                     {/* Reports */}

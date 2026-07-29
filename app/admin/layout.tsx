@@ -26,9 +26,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     <Link href="/admin/users" className={styles.navItem}>
                         <span>👥</span> Users
                     </Link>
-                    <Link href="/admin/frames" className={styles.navItem}>
-                        <span>📸</span> Global Frames
-                    </Link>
                     <Link href="/admin/reports" className={styles.navItem}>
                         <span>🚨</span> Reports
                     </Link>

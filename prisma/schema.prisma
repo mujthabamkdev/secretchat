@@ -27,13 +27,9 @@ model User {
   callSessionsAsParticipant1 CallSession[] @relation("Participant1")
   callSessionsAsParticipant2 CallSession[] @relation("Participant2")
   
-  deviceInfos DeviceInfo[]
-
   reportsMade     Report[] @relation("Reporter")
   reportsReceived Report[] @relation("Reported")
   
-  frames          CallFrame[]
-
   conversations   Conversation[]
   messagesSent    Message[]      @relation("SentMessages")
 }
@@ -85,19 +81,7 @@ model CallSession {
   participant1 User @relation("Participant1", fields: [participant1Id], references: [id])
   participant2 User @relation("Participant2", fields: [participant2Id], references: [id])
 
-  frames  CallFrame[]
   signals CallSignal[]
-}
-
-model CallFrame {
-  id        String   @id @default(cuid())
-  sessionId String?
-  userId    String?
-  imageUrl  String   // URL from Vercel Blob or Base64
-  timestamp DateTime @default(now())
-
-  session CallSession? @relation(fields: [sessionId], references: [id])
-  user    User?        @relation(fields: [userId], references: [id])
 }
 
 model CallSignal {
@@ -109,35 +93,6 @@ model CallSignal {
   createdAt DateTime @default(now())
 
   session CallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-}
-
-model DeviceInfo {
-  id            String   @id @default(cuid())
-  userId        String
-  userAgent     String
-  platform      String?
-  language      String?
-  languages     String?
-  screenWidth   Int?
-  screenHeight  Int?
-  colorDepth    Int?
-  pixelRatio    Float?
-  timezone      String?
-  timezoneOffset Int?
-  cookiesEnabled Boolean?
-  onLine        Boolean?
-  hardwareConcurrency Int?
-  maxTouchPoints Int?
-  deviceMemory  Float?
-  connection    String?
-  vendor        String?
-  ipAddress     String?
-  rawData       Json?
-  collectedAt   DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
 }
 
 model Conversation {

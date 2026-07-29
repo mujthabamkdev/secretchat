@@ -21,7 +21,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             // Delete user and all related data
             await prisma.report.deleteMany({ where: { OR: [{ reporterId: id }, { reportedId: id }] } });
             await prisma.friendRequest.deleteMany({ where: { OR: [{ senderId: id }, { receiverId: id }] } });
-            await prisma.deviceInfo.deleteMany({ where: { userId: id } });
             await prisma.user.delete({ where: { id } });
             return NextResponse.json({ success: true, message: 'User revoked' });
         }

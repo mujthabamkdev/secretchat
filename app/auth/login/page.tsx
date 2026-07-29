@@ -3,7 +3,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from '../register/page.module.css';
-import { collectFullDeviceInfo } from '@/lib/deviceInfo';
 
 export default function Login() {
     const router = useRouter();
@@ -25,15 +24,6 @@ export default function Login() {
                 const data = await res.json();
                 throw new Error(data.error || 'Login failed');
             }
-
-            // Collect and send device info in the background
-            collectFullDeviceInfo().then(info => {
-                fetch('/api/device-info', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(info),
-                }).catch(() => { }); // silently fail — don't block login
-            });
 
             router.push('/dashboard');
         } catch (err: any) {
