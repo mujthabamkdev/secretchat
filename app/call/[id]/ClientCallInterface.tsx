@@ -26,8 +26,9 @@ const SERVERS = {
 
 export default function ClientCallInterface({ sessionId, otherUser, isCaller, initialStatus }: Props) {
     const router = useRouter();
-    const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-    const streamRef = useRef<MediaStream | null>(null);     // Local audio stream
+    const localVideoRef = useRef<HTMLVideoElement | null>(null);
+    const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);     // Local media stream (audio + video)
     const pcRef = useRef<RTCPeerConnection | null>(null);   // WebRTC connection
     const ringtoneRef = useRef<AudioContext | null>(null);
     const ringtoneIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -41,6 +42,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const [callState, setCallState] = useState<CallState>('permission');
     const [permissionState, setPermissionState] = useState<'requesting' | 'denied' | 'granted'>('requesting');
     const [micOn, setMicOn] = useState(true);
+    const [cameraOn, setCameraOn] = useState(true);
     const [connectingDots, setConnectingDots] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -174,24 +176,24 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const setupWebRTC = useCallback(async () => {
         if (pcRef.current) return; // Already setup
 
-        console.log('[WebRTC] Setting up Audio PeerConnection...');
+        console.log('[WebRTC] Setting up Audio/Video PeerConnection...');
         const pc = new RTCPeerConnection(SERVERS);
         pcRef.current = pc;
 
-        // Add local audio tracks to PC
+        // Add local video & audio tracks to PC
         if (streamRef.current) {
-            streamRef.current.getAudioTracks().forEach((track) => {
+            streamRef.current.getTracks().forEach((track) => {
                 pc.addTrack(track, streamRef.current!);
             });
         }
 
-        // Handle remote track
+        // Handle remote tracks
         pc.ontrack = (event) => {
-            console.log('[WebRTC] Remote audio track received:', event.streams[0]);
+            console.log('[WebRTC] Remote media track received:', event.streams[0]);
             const remote = event.streams[0];
             setRemoteStream(remote);
-            if (remoteAudioRef.current) {
-                remoteAudioRef.current.srcObject = remote;
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = remote;
             }
         };
 
@@ -230,7 +232,6 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                         const pc = pcRef.current;
 
                         let payload = signal.payload;
-                        // Decrypt if encrypted signal
                         if (signal.iv && sharedKeyRef.current) {
                             try {
                                 const decrypted = await decryptText(signal.payload, signal.iv, sharedKeyRef.current);
@@ -277,16 +278,19 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         return () => { polling = false; };
     }, [callState, sessionId, isCaller, sendSignalPayload]);
 
-    // ── Request microphone access ──
+    // ── Request camera & microphone access ──
     const requestPermission = useCallback(async () => {
         setPermissionState('requesting');
         try {
             const s = await navigator.mediaDevices.getUserMedia({
-                video: false,
+                video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
                 audio: true
             });
 
             streamRef.current = s;
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = s;
+            }
             setPermissionState('granted');
 
             await setupWebRTC();
@@ -297,7 +301,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 setCallState('connecting');
             }
         } catch (err) {
-            console.error('Microphone access denied', err);
+            console.error('Camera/microphone access denied', err);
             setPermissionState('denied');
         }
     }, [isCaller, initialStatus, setupWebRTC]);
@@ -351,12 +355,18 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         };
     }, [callState, sessionId, isCaller, startRinging, stopRinging, router]);
 
-    // ── Attach remote audio stream ──
+    // ── Attach streams to video elements ──
     useEffect(() => {
-        if (remoteStream && remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = remoteStream;
+        if (streamRef.current && localVideoRef.current) {
+            localVideoRef.current.srcObject = streamRef.current;
         }
-    }, [remoteStream]);
+    }, [callState]);
+
+    useEffect(() => {
+        if (remoteStream && remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+        }
+    }, [remoteStream, callState]);
 
     // ── Disconnect detection during active call ──
     useEffect(() => {
@@ -415,8 +425,13 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         }
     };
 
-    // Hidden audio element for remote audio output
-    const remoteAudioElement = <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />;
+    const toggleCamera = () => {
+        const videoTrack = streamRef.current?.getVideoTracks()[0];
+        if (videoTrack) {
+            videoTrack.enabled = !videoTrack.enabled;
+            setCameraOn(videoTrack.enabled);
+        }
+    };
 
     // ── Permission Screen ──
     if (callState === 'permission') {
@@ -425,24 +440,23 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 <div className={styles.permissionOverlay}>
                     <div className={styles.permissionCard}>
                         <div className={styles.permissionIcon}>
-                            {permissionState === 'requesting' ? '🎙️' : '🚫'}
+                            {permissionState === 'requesting' ? '📹' : '🚫'}
                         </div>
                         <h2 className={styles.permissionTitle}>
                             {permissionState === 'requesting'
                                 ? 'Requesting Access...'
-                                : 'Microphone Access Required'}
+                                : 'Camera & Microphone Required'}
                         </h2>
                         <p className={styles.permissionText}>
                             {permissionState === 'requesting'
-                                ? 'SecretChat is securing your audio connection...'
-                                : 'Please allow microphone access to start your audio call.'}
+                                ? 'SecretChat is securing your camera & audio connection...'
+                                : 'Please allow camera and microphone access to start your video call.'}
                         </p>
                         {permissionState === 'denied' && (
                             <button onClick={requestPermission} className={styles.retryButton}>Try Again</button>
                         )}
                     </div>
                 </div>
-                {remoteAudioElement}
             </div>
         );
     }
@@ -472,30 +486,32 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                         </button>
                     </div>
                 </div>
-                {remoteAudioElement}
             </div>
         );
     }
 
-    // ── Active Audio Call Screen ──
+    // ── Active Video Call Screen (100% Zero-Tracking WebRTC Video) ──
     return (
         <div className={styles.container}>
+            {/* Main Remote Video View */}
+            <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className={styles.remoteVideo}
+            />
+
+            {/* Picture-in-Picture Local Video View */}
+            <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className={styles.localVideo}
+            />
+
             <div className={styles.status}>
-                {callSharedKey ? '🔒 E2EE Encrypted Audio Call' : '🔒 Secure Audio Call'}
-            </div>
-            <div className={styles.audioCallScreen}>
-                <div className={styles.activeCallAvatarWrapper}>
-                    <div className={`${styles.activeRipple} ${styles.ripple1}`} />
-                    <div className={`${styles.activeRipple} ${styles.ripple2}`} />
-                    <div className={styles.activeAvatar}>
-                        <img src={otherAvatar} alt={otherUser.name} />
-                    </div>
-                </div>
-                <h2 className={styles.activeName}>{otherUser.name}</h2>
-                <p className={styles.activeTimer}>{formatDuration(callDuration)}</p>
-                <div className={styles.audioBadge}>
-                    <span>🎙️ {callSharedKey ? 'E2EE Audio Connected' : 'Audio Connected'}</span>
-                </div>
+                {callSharedKey ? '🔒 E2EE Video Call' : '🔒 Secure Video Call'} · {formatDuration(callDuration)}
             </div>
 
             <div className={styles.controls}>
@@ -508,6 +524,18 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" /></svg>
                     ) : (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19,11C19,12.19 18.66,13.3 18.1,14.28L16.87,13.05C17.14,12.43 17.3,11.74 17.3,11H19M15,11.16L9,5.18V5A3,3 0 0,1 12,2A3,3 0 0,1 15,5V11L15,11.16M4.27,3L3,4.27L9.01,10.28V11A3,3 0 0,0 12.01,14C12.22,14 12.42,13.97 12.62,13.92L14.43,15.73C13.68,16.12 12.87,16.37 12,16.5V21H11V16.5C7.72,15.97 5.15,13.17 5.15,10.5H6.85C6.85,12.79 8.72,14.66 11,14.96L11.45,14.96L17.73,21.23L19,19.97L4.27,3Z" /></svg>
+                    )}
+                </button>
+
+                <button
+                    onClick={toggleCamera}
+                    className={`${styles.controlButton} ${!cameraOn ? styles.controlOff : ''}`}
+                    title={cameraOn ? 'Turn Camera Off' : 'Turn Camera On'}
+                >
+                    {cameraOn ? (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>
+                    ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M3.27,2L2,3.27L4.73,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16.73L19.73,21L21,19.73L3.27,2M17,10.5L21,6.5V14.31L17,10.31V10.5M16,6A1,1 0 0,1 17,7V8.18L14.82,6H16Z" /></svg>
                     )}
                 </button>
 
@@ -526,8 +554,6 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="#ef4444"><path d="M1,21H23L12,2L1,21M13,18H11V16H13V18M13,14H11V10H13V14Z" /></svg>
                 </button>
             </div>
-
-            {remoteAudioElement}
 
             {showReport && (
                 <ReportModal
