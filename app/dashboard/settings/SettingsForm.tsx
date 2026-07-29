@@ -172,6 +172,50 @@ export default function SettingsForm({ initialUsername, initialName, initialBio,
             <button onClick={handleSave} className={styles.saveButton} disabled={saving}>
                 {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
             </button>
+
+            {/* ── E2EE Security Section ── */}
+            <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <h3 style={{ fontSize: '1rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    🔒 End-to-End Encryption Keys
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.5, marginBottom: '16px' }}>
+                    Your E2EE keypair secures your private chat messages and audio calls. If you suspect key compromise, you can rotate your keypair at any time.
+                </p>
+                <button
+                    type="button"
+                    onClick={async () => {
+                        try {
+                            const cookieId = document.cookie.split('userId=')[1]?.split(';')[0];
+                            if (!cookieId) return alert('Session error');
+                            const { generateECDHKeyPair, exportPublicKey } = await import('@/lib/crypto');
+                            const newKeyPair = await generateECDHKeyPair();
+                            const pubStr = await exportPublicKey(newKeyPair.publicKey);
+                            
+                            await fetch('/api/user/key', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ publicKey: pubStr })
+                            });
+                            alert('E2EE Encryption Keypair rotated successfully!');
+                        } catch (e: any) {
+                            alert('Failed to rotate keys: ' + e.message);
+                        }
+                    }}
+                    style={{
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        color: '#10b981',
+                        padding: '10px 18px',
+                        borderRadius: '12px',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    Rotate Encryption Keypair
+                </button>
+            </div>
         </div>
     );
 }

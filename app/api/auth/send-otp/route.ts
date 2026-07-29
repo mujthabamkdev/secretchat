@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendOtpEmail } from '@/lib/email';
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function POST(req: Request) {
     try {
         const { email } = await req.json();
+
+        const rateLimitRes = checkRateLimit(`otp_${email || 'unknown'}`, 5, 60 * 1000);
+        if (rateLimitRes) return rateLimitRes;
 
         // Validate Gmail only
         if (!email || !email.toLowerCase().endsWith('@gmail.com')) {

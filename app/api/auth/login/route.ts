@@ -3,11 +3,19 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function POST(req: Request) {
     try {
-        const { username, password } = await req.json();
-        if (!username || !password) {
-            return NextResponse.json({ error: 'Username and password required' }, { status: 400 });
+        const body = await req.json();
+        const username = typeof body.username === 'string' ? body.username.trim() : '';
+        const password = typeof body.password === 'string' ? body.password : '';
+
+        const rateLimitRes = checkRateLimit(`login_${username || 'unknown'}`, 10, 60 * 1000);
+        if (rateLimitRes) return rateLimitRes;
+
+        if (!username || !password || username.length > 50 || password.length > 200) {
+            return NextResponse.json({ error: 'Invalid input format' }, { status: 400 });
         }
 
         const user = await prisma.user.findUnique({ where: { username } });
