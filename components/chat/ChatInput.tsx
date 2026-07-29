@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { Camera, Flame, Send } from 'lucide-react';
 import { encryptText } from '@/lib/crypto';
 
 interface Props {
@@ -20,9 +21,21 @@ export default function ChatInput({ friendId, sharedKey, onSend, defaultEphemera
         setIsEphemeral(defaultEphemeral || false);
     }, [defaultEphemeral]);
 
+    const getWordCount = (str: string) => {
+        const trimmed = str.trim();
+        return trimmed ? trimmed.split(/\s+/).length : 0;
+    };
+
+    const wordCount = getWordCount(text);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!text.trim() || sending) return;
+
+        if (wordCount > 60) {
+            alert('Messages cannot exceed 60 words.');
+            return;
+        }
 
         setSending(true);
         try {
@@ -127,18 +140,21 @@ export default function ChatInput({ friendId, sharedKey, onSend, defaultEphemera
                 style={{
                     background: 'transparent',
                     border: 'none',
-                    fontSize: '1.2rem',
+                    color: isEphemeral ? '#ef4444' : '#94a3b8',
                     cursor: 'pointer',
-                    opacity: isEphemeral ? 1 : 0.4,
+                    opacity: isEphemeral ? 1 : 0.5,
                     transition: 'all 0.2s',
                     position: 'relative',
-                    padding: '8px'
+                    padding: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}
                 title={isEphemeral ? "Disappearing message ON" : "Turn on disappearing messages"}
             >
-                🔥
+                <Flame size={20} />
                 {isEphemeral && (
-                    <span style={{ position: 'absolute', top: 0, right: 0, width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }} />
+                    <span style={{ position: 'absolute', top: '4px', right: '4px', width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%' }} />
                 )}
             </button>
 
@@ -150,10 +166,16 @@ export default function ChatInput({ friendId, sharedKey, onSend, defaultEphemera
                 disabled={uploadingImage}
                 style={{
                     flex: 1, background: 'transparent', border: 'none',
-                    color: '#fff', fontSize: '1rem', outline: 'none',
+                    color: wordCount > 60 ? '#ef4444' : '#fff', fontSize: '1rem', outline: 'none',
                     fontFamily: 'inherit', padding: '0 4px', minWidth: '0'
                 }}
             />
+
+            {text.trim().length > 0 && (
+                <span style={{ fontSize: '0.7rem', color: wordCount > 60 ? '#ef4444' : '#64748b', fontWeight: 600, paddingRight: '4px' }}>
+                    {wordCount}/60w
+                </span>
+            )}
 
             <input
                 type="file"
@@ -168,28 +190,43 @@ export default function ChatInput({ friendId, sharedKey, onSend, defaultEphemera
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
                 style={{
-                    background: 'transparent', border: 'none', color: '#9ca3af',
-                    fontSize: '1.2rem', cursor: uploadingImage ? 'wait' : 'pointer', padding: '8px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    background: 'transparent',
+                    border: 'none',
+                    color: uploadingImage ? '#14b8a6' : '#94a3b8',
+                    cursor: uploadingImage ? 'wait' : 'pointer',
+                    padding: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.2s'
                 }}
                 title="Send Image"
             >
-                📷
+                <Camera size={20} />
             </button>
 
             <button
                 type="submit"
-                disabled={!text.trim() || sending || uploadingImage}
+                disabled={!text.trim() || sending || uploadingImage || wordCount > 60}
                 style={{
-                    background: text.trim() ? '#10b981' : '#374151',
-                    color: '#fff', border: 'none', borderRadius: '50%',
-                    width: '38px', height: '38px', flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: text.trim() && !sending && !uploadingImage ? 'pointer' : 'not-allowed',
-                    transition: 'all 0.2s', padding: '0', marginLeft: '4px'
+                    background: text.trim() && wordCount <= 60 ? 'var(--brand-gradient)' : '#1e293b',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: text.trim() && !sending && !uploadingImage && wordCount <= 60 ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.2s',
+                    padding: '0',
+                    marginLeft: '4px',
+                    boxShadow: text.trim() && wordCount <= 60 ? '0 2px 10px rgba(20, 184, 166, 0.3)' : 'none'
                 }}
             >
-                <span style={{ transform: 'translateX(2px)' }}>{sending ? '...' : '➤'}</span>
+                <Send size={16} style={{ transform: 'translateX(1px)' }} />
             </button>
         </form>
     );

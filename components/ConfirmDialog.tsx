@@ -1,4 +1,5 @@
 'use client';
+import { AlertTriangle, Info } from 'lucide-react';
 import styles from './ConfirmDialog.module.css';
 
 interface Props {
@@ -16,7 +17,7 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Confirm'
         <div className={styles.overlay} onClick={onCancel}>
             <div className={styles.dialog} onClick={e => e.stopPropagation()}>
                 <div className={`${styles.icon} ${danger ? styles.iconDanger : styles.iconNeutral}`}>
-                    {danger ? '⚠️' : 'ℹ️'}
+                    {danger ? <AlertTriangle size={24} color="#ef4444" /> : <Info size={24} color="#3b82f6" />}
                 </div>
                 <h3 className={styles.title}>{title}</h3>
                 <p className={styles.message}>{message}</p>

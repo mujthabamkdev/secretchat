@@ -109,16 +109,19 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #555;
+    color: #64748b;
     font-size: 15px;
     font-weight: 600;
     pointer-events: none;
     z-index: 1;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .prefixedInput {
-    padding-left: 30px !important;
+    padding-left: 32px !important;
 }
 
 .textarea {

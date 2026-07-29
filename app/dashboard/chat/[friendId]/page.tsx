@@ -38,28 +38,43 @@ export default async function ChatPage({ params }: { params: Promise<{ friendId:
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: '#0a0a0a' }}>
+        <div style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100vw',
+            height: '100dvh',
+            background: '#090d16',
+            overflow: 'hidden',
+            zIndex: 99
+        }}>
             {/* Header */}
             <header style={{
-                display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid #222',
-                background: 'rgba(10,10,10,0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 10
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px 16px',
+                borderBottom: '1px solid #1e293b',
+                background: 'rgba(9, 13, 22, 0.95)',
+                backdropFilter: 'blur(12px)',
+                flexShrink: 0
             }}>
-                <a href="/dashboard" style={{ marginRight: '16px', color: '#10b981', textDecoration: 'none', fontSize: '24px' }}>
+                <a href="/dashboard" style={{ marginRight: '16px', color: '#14b8a6', textDecoration: 'none', fontSize: '20px', display: 'flex', alignItems: 'center' }}>
                     &larr;
                 </a>
                 <img
                     src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`}
                     alt={friend.name}
-                    style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '12px' }}
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', marginRight: '12px', border: '1px solid #1e293b' }}
                 />
                 <div>
-                    <h2 style={{ fontSize: '1.1rem', margin: 0, color: '#fff' }}>{friend.name}</h2>
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>@{friend.username}</p>
+                    <h2 style={{ fontSize: '1rem', margin: 0, color: '#f8fafc', fontWeight: 700 }}>{friend.name}</h2>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>@{friend.username}</p>
                 </div>
             </header>
 
-            {/* Chat Room */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+            {/* Chat Room Container */}
+            <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <ChatRoom currentUserId={currentUserId} friendId={friend.id} friendName={friend.name} />
             </div>
         </div>

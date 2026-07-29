@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { Bell, User, PhoneCall, ChevronRight } from 'lucide-react';
 import styles from './NotificationBell.module.css';
 
 interface NotifUser {
@@ -63,10 +64,8 @@ export default function NotificationBell() {
 
     return (
         <div className={styles.wrapper} ref={ref}>
-            <button className={styles.bellBtn} onClick={() => setOpen(!open)} title="Notifications">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12,22A2,2 0 0,0 14,20H10A2,2 0 0,0 12,22M18,16V11C18,7.93 16.36,5.36 13.5,4.68V4A1.5,1.5 0 0,0 12,2.5A1.5,1.5 0 0,0 10.5,4V4.68C7.63,5.36 6,7.92 6,11V16L4,18V19H20V18L18,16Z" />
-                </svg>
+            <button className={styles.bellBtn} onClick={() => setOpen(!open)} title="Notifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Bell size={19} />
                 {count > 0 && <span className={styles.badge}>{count > 9 ? '9+' : count}</span>}
             </button>
 
@@ -100,11 +99,12 @@ export default function NotificationBell() {
                                                 ? ' sent you a friend request'
                                                 : ' missed call'}
                                         </div>
-                                        <div className={styles.time}>
-                                            {n.type === 'friend_request' ? '👤' : '📞'} {timeAgo(n.time)}
+                                        <div className={styles.time} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            {n.type === 'friend_request' ? <User size={12} color="#14b8a6" /> : <PhoneCall size={12} color="#ef4444" />}
+                                            <span>{timeAgo(n.time)}</span>
                                         </div>
                                     </div>
-                                    <span className={styles.arrow}>›</span>
+                                    <ChevronRight size={16} className={styles.arrow} />
                                 </a>
                             ))}
                         </div>

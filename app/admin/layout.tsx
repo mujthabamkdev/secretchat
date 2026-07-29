@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { ShieldCheck, BarChart2, Users, AlertTriangle, Lock, ArrowLeft } from 'lucide-react';
 import prisma from '@/lib/prisma';
 import styles from './admin.module.css';
 import Link from 'next/link';
@@ -15,26 +16,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     return (
         <div className={styles.layout}>
             <aside className={styles.sidebar}>
-                <div className={styles.sidebarHeader}>
-                    <span className={styles.sidebarLogo}>🛡️</span>
-                    <h2 className={styles.sidebarTitle}>Admin</h2>
+                <div className={styles.sidebarHeader} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <ShieldCheck size={24} color="#14b8a6" />
+                    <h2 className={styles.sidebarTitle} style={{ margin: 0 }}>Admin Panel</h2>
                 </div>
                 <nav className={styles.sidebarNav}>
-                    <Link href="/admin" className={styles.navItem}>
-                        <span>📊</span> Overview
+                    <Link href="/admin" className={styles.navItem} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BarChart2 size={18} /> Overview
                     </Link>
-                    <Link href="/admin/users" className={styles.navItem}>
-                        <span>👥</span> Users
+                    <Link href="/admin/users" className={styles.navItem} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Users size={18} /> Users
                     </Link>
-                    <Link href="/admin/reports" className={styles.navItem}>
-                        <span>🚨</span> Reports
+                    <Link href="/admin/reports" className={styles.navItem} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <AlertTriangle size={18} /> Reports
                     </Link>
-                    <Link href="/admin/review" className={styles.navItem}>
-                        <span>🔒</span> Blocked Review
+                    <Link href="/admin/review" className={styles.navItem} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Lock size={18} /> Blocked Review
                     </Link>
                 </nav>
                 <div className={styles.sidebarFooter}>
-                    <Link href="/dashboard" className={styles.backLink}>← Back to App</Link>
+                    <Link href="/dashboard" className={styles.backLink} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <ArrowLeft size={16} /> Back to App
+                    </Link>
                 </div>
             </aside>
             <main className={styles.main}>

@@ -57,11 +57,12 @@
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    width: 340px;
-    background: #1a1a1a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    background: #111827;
+    border: 1px solid #1e293b;
     border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
     overflow: hidden;
     z-index: 999;
     animation: slideIn 0.15s ease;
@@ -189,7 +190,7 @@
 
 @media (max-width: 480px) {
     .dropdown {
-        width: 300px;
-        right: -40px;
+        width: 290px;
+        right: -10px;
     }
 }

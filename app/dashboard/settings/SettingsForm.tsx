@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { LogOut } from 'lucide-react';
 import styles from './settings.module.css';
 
 interface Props {
@@ -95,6 +96,11 @@ export default function SettingsForm({ initialUsername, initialName, initialBio,
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleLogout = () => {
+        document.cookie = 'userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        router.push('/');
     };
 
     return (
@@ -214,6 +220,32 @@ export default function SettingsForm({ initialUsername, initialName, initialBio,
                     }}
                 >
                     Rotate Encryption Keypair
+                </button>
+            </div>
+
+            {/* ── Logout Section ── */}
+            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    style={{
+                        width: '100%',
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        color: '#ef4444',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    <LogOut size={18} /> Log Out
                 </button>
             </div>
         </div>

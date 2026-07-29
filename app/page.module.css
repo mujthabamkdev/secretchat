@@ -2,18 +2,19 @@
 .main {
     min-height: 100vh;
     background: var(--background);
+    color: var(--foreground);
     overflow: hidden;
     position: relative;
 }
 
-/* Animated gradient orbs */
+/* Logo-matched cyan/teal ambient background glow */
 .main::before,
 .main::after {
     content: '';
     position: fixed;
     border-radius: 50%;
     filter: blur(120px);
-    opacity: 0.4;
+    opacity: 0.25;
     z-index: 0;
     pointer-events: none;
 }
@@ -21,51 +22,17 @@
 .main::before {
     width: 500px;
     height: 500px;
-    background: var(--primary);
+    background: #14b8a6;
     top: -150px;
     right: -100px;
-    animation: floatOrb1 12s ease-in-out infinite;
 }
 
 .main::after {
-    width: 400px;
-    height: 400px;
-    background: var(--secondary);
+    width: 450px;
+    height: 450px;
+    background: #0284c7;
     bottom: -100px;
     left: -100px;
-    animation: floatOrb2 15s ease-in-out infinite;
-}
-
-@keyframes floatOrb1 {
-
-    0%,
-    100% {
-        transform: translate(0, 0);
-    }
-
-    33% {
-        transform: translate(-40px, 60px);
-    }
-
-    66% {
-        transform: translate(50px, -30px);
-    }
-}
-
-@keyframes floatOrb2 {
-
-    0%,
-    100% {
-        transform: translate(0, 0);
-    }
-
-    33% {
-        transform: translate(50px, -40px);
-    }
-
-    66% {
-        transform: translate(-30px, 50px);
-    }
 }
 
 /* ── Navigation ── */
@@ -73,72 +40,74 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
+    padding: 24px 40px;
     position: relative;
     z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .logo {
-    font-weight: 900;
-    font-size: 22px;
+    font-weight: 800;
+    font-size: 20px;
     letter-spacing: -0.5px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.logoIcon {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
+.logoText {
+    font-family: var(--font-outfit), 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.6px;
+    color: #ffffff;
 }
 
 .navLinks {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 .navLink {
-    padding: 10px 20px;
+    padding: 10px 16px;
     border-radius: 10px;
     font-weight: 500;
     font-size: 14px;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     cursor: pointer;
     background: transparent;
-    color: #999;
+    color: #94a3b8;
+    white-space: nowrap;
 }
 
 .navLink:hover {
-    color: white;
+    color: #ffffff;
     background: rgba(255, 255, 255, 0.05);
 }
 
 .navLinkPrimary {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white !important;
+    background: var(--brand-gradient);
+    color: #ffffff !important;
     font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(20, 184, 166, 0.25);
 }
 
 .navLinkPrimary:hover {
-    opacity: 0.9;
+    opacity: 0.92;
     transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 6px 20px rgba(20, 184, 166, 0.35);
 }
 
 /* ── Hero Section ── */
 .hero {
     text-align: center;
-    padding: 80px 24px 40px;
+    padding: 90px 24px 40px;
     position: relative;
     z-index: 10;
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
 }
 
@@ -146,9 +115,9 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(99, 102, 241, 0.12);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    color: #a5b4fc;
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.25);
+    color: #5eead4;
     padding: 6px 16px;
     border-radius: 999px;
     font-size: 13px;
@@ -160,107 +129,93 @@
 .badgeDot {
     width: 6px;
     height: 6px;
-    background: var(--success);
+    background: #14b8a6;
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--success);
+    box-shadow: 0 0 8px #14b8a6;
     animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
-
-    0%,
-    100% {
+    0%, 100% {
         opacity: 1;
         transform: scale(1);
     }
-
     50% {
-        opacity: 0.6;
+        opacity: 0.4;
         transform: scale(0.8);
     }
 }
 
 .heroTitle {
-    font-size: clamp(2.5rem, 6vw, 4rem);
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -1.5px;
-    margin-bottom: 20px;
+    font-size: clamp(2.5rem, 6vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    color: #ffffff;
     animation: fadeInUp 0.7s ease 0.1s both;
 }
 
 .gradientText {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, #f97316 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #38bdf8 50%, #0284c7 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-size: 200% auto;
-    animation: shimmer 4s linear infinite;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 0% center;
-    }
-
-    100% {
-        background-position: 200% center;
-    }
 }
 
 .heroSub {
     font-size: 1.15rem;
-    color: #888;
+    color: #94a3b8;
     line-height: 1.6;
-    max-width: 500px;
+    max-width: 540px;
     margin: 0 auto 40px;
     animation: fadeInUp 0.7s ease 0.2s both;
 }
 
 .heroCta {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     justify-content: center;
     animation: fadeInUp 0.7s ease 0.3s both;
 }
 
 .ctaPrimary {
     padding: 14px 36px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    font-weight: 700;
-    border-radius: 14px;
-    font-size: 16px;
+    background: var(--brand-gradient);
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 12px;
+    font-size: 15px;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    box-shadow: 0 4px 20px rgba(20, 184, 166, 0.3);
 }
 
 .ctaPrimary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 8px 30px rgba(20, 184, 166, 0.45);
 }
 
 .ctaSecondary {
     padding: 14px 36px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #ccc;
+    background: rgba(255, 255, 255, 0.05);
+    color: #f1f5f9;
     font-weight: 600;
-    border-radius: 14px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     text-decoration: none;
 }
 
 .ctaSecondary:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: white;
     border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -269,68 +224,61 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    max-width: 900px;
-    margin: 60px auto 0;
+    max-width: 960px;
+    margin: 80px auto 0;
     padding: 0 24px;
     position: relative;
     z-index: 10;
 }
 
 .featureCard {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
-    padding: 28px 24px;
+    background: #0a0a0a;
+    border: 1px solid #1f1f1f;
+    border-radius: 14px;
+    padding: 32px 24px;
     text-align: left;
-    transition: all 0.35s ease;
+    transition: all 0.25s ease;
     animation: fadeInUp 0.6s ease both;
 }
 
-.featureCard:nth-child(1) {
-    animation-delay: 0.35s;
-}
-
-.featureCard:nth-child(2) {
-    animation-delay: 0.45s;
-}
-
-.featureCard:nth-child(3) {
-    animation-delay: 0.55s;
-}
+.featureCard:nth-child(1) { animation-delay: 0.35s; }
+.featureCard:nth-child(2) { animation-delay: 0.45s; }
+.featureCard:nth-child(3) { animation-delay: 0.55s; }
 
 .featureCard:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(99, 102, 241, 0.3);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    background: #111111;
+    border-color: #444444;
+    transform: translateY(-2px);
 }
 
 .featureIcon {
-    font-size: 28px;
-    margin-bottom: 16px;
-    display: block;
+    font-size: 24px;
+    margin-bottom: 18px;
+    display: inline-block;
+    filter: grayscale(100%);
 }
 
 .featureTitle {
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #eee;
+    color: #ffffff;
+    letter-spacing: -0.3px;
 }
 
 .featureDesc {
-    font-size: 13px;
-    color: #777;
+    font-size: 14px;
+    color: #777777;
     line-height: 1.5;
 }
 
 /* ── Footer ── */
 .footer {
     text-align: center;
-    padding: 60px 24px 30px;
+    padding: 80px 24px 40px;
     position: relative;
     z-index: 10;
-    color: #555;
+    color: #444444;
     font-size: 13px;
 }
 
@@ -338,9 +286,8 @@
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(16px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -351,15 +298,26 @@
 @media (max-width: 768px) {
     .nav {
         padding: 16px 20px;
+        gap: 8px;
+    }
+
+    .navLinks {
+        gap: 6px;
+    }
+
+    .navLink {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 
     .hero {
-        padding: 50px 20px 30px;
+        padding: 60px 20px 30px;
     }
 
     .features {
         grid-template-columns: 1fr;
         max-width: 400px;
+        margin-top: 40px;
     }
 
     .heroCta {
@@ -371,5 +329,6 @@
     .ctaSecondary {
         width: 100%;
         justify-content: center;
+        white-space: nowrap;
     }
 }

@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { ShieldCheck, MessageSquare } from 'lucide-react';
 import ClientSearch from './ClientSearch';
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
@@ -10,8 +11,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     const currentUserId = cookieStore.get('userId')?.value;
 
     const currentUser = currentUserId
-        ? await prisma.user.findUnique({ where: { id: currentUserId }, select: { avatarUrl: true, username: true } })
+        ? await prisma.user.findUnique({ where: { id: currentUserId }, select: { role: true, avatarUrl: true, username: true } })
         : null;
+    const isAdmin = currentUser?.role === 'ADMIN';
 
     const users = await prisma.user.findMany({
         where: {
@@ -27,9 +29,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         },
         take: 50,
     });
-
-    const profileAvatar = currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.username || 'default'}`;
-
 
     // Fetch friends (connections)
     const connections = currentUserId ? await prisma.friendRequest.findMany({
@@ -64,17 +63,29 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         return { ...friend, latestMessage };
     }));
 
+    const profileAvatar = currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.username || 'default'}`;
+
     return (
-        <div className="container">
-            <header className={styles.header}>
-                <div className={styles.headerRow}>
+        <div className="container" style={{ paddingTop: '12px' }}>
+            <header className={styles.header} style={{ marginTop: 0 }}>
+                {/* Top action row above Secret Network label */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', marginTop: 0 }}>
                     <div>
-                        <h1 className="heading">Secret Network</h1>
-                        <p className="subheading">Find verified users and start a secret connection.</p>
+                        {isAdmin && (
+                            <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
+                                <ShieldCheck size={16} /> Admin Panel
+                            </Link>
+                        )}
                     </div>
-                    <Link href="/dashboard/settings" className={styles.profileButton} title="Profile Settings">
+                    <Link href="/dashboard/settings" className={styles.profileButton} title="Profile Settings" style={{ margin: 0 }}>
                         <img src={profileAvatar} alt="Profile" />
                     </Link>
+                </div>
+
+                {/* Centered Secret Network Title */}
+                <div style={{ textAlign: 'center' }}>
+                    <h1 className="heading" style={{ margin: 0 }}>Secret Network</h1>
+                    <p className="subheading" style={{ margin: '4px 0 0' }}>Find verified users and start a secret connection.</p>
                 </div>
             </header>
 
@@ -117,12 +128,20 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                                 <Link
                                     href={`/dashboard/chat/${friend.id}`}
                                     style={{
-                                        padding: '8px 12px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981',
-                                        borderRadius: '8px', fontSize: '1.2rem', textDecoration: 'none', transition: 'all 0.2s'
+                                        padding: '8px 12px',
+                                        background: 'rgba(20, 184, 166, 0.12)',
+                                        border: '1px solid rgba(20, 184, 166, 0.25)',
+                                        color: '#14b8a6',
+                                        borderRadius: '10px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.2s'
                                     }}
                                     title="Go to Chat"
                                 >
-                                    💬
+                                    <MessageSquare size={18} />
                                 </Link>
                             </div>
                         ))}

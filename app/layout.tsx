@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
+
+const outfit = Outfit({
+    subsets: ["latin"],
+    weight: ["400", "600", "800", "900"],
+    variable: "--font-outfit"
+});
 
 export const metadata: Metadata = {
     title: "SecretChat",
@@ -33,7 +40,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body>
+            <body className={outfit.className}>
                 <PwaRegister />
                 {children}
                 <PwaInstallPrompt />

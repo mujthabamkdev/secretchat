@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { CheckCircle2, ShieldAlert } from 'lucide-react';
 import styles from './ReportModal.module.css';
 
 interface Props {
@@ -43,7 +44,9 @@ export default function ReportModal({ reportedId, reportedName, onClose }: Props
             <div className={styles.overlay} onClick={onClose}>
                 <div className={styles.modal} onClick={e => e.stopPropagation()}>
                     <div className={styles.success}>
-                        <span className={styles.successIcon}>✅</span>
+                        <div className={styles.successIcon} style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', color: '#10b981' }}>
+                            <CheckCircle2 size={48} />
+                        </div>
                         <h3>Report Submitted</h3>
                         <p>Thank you for helping keep SecretChat safe.</p>
                         <button onClick={onClose} className={styles.closeBtn}>Close</button>
@@ -56,7 +59,10 @@ export default function ReportModal({ reportedId, reportedName, onClose }: Props
     return (
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                <h3 className={styles.title}>Report {reportedName}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <ShieldAlert size={22} color="#f59e0b" />
+                    <h3 className={styles.title} style={{ margin: 0 }}>Report {reportedName}</h3>
+                </div>
                 <p className={styles.subtitle}>Help us understand what happened</p>
 
                 {error && <div className={styles.error}>{error}</div>}
@@ -71,10 +77,13 @@ export default function ReportModal({ reportedId, reportedName, onClose }: Props
                                 className={`${styles.severityBtn} ${styles[`severity${s}`]} ${severity === s ? styles.severityActive : ''}`}
                                 onClick={() => setSeverity(s)}
                             >
-                                {s === 'LOW' && '🟢'}
-                                {s === 'MEDIUM' && '🟡'}
-                                {s === 'HIGH' && '🟠'}
-                                {s === 'CRITICAL' && '🔴'}
+                                <span style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    background: s === 'LOW' ? '#22c55e' : s === 'MEDIUM' ? '#eab308' : s === 'HIGH' ? '#f97316' : '#ef4444',
+                                    display: 'inline-block'
+                                }} />
                                 <span>{s}</span>
                             </button>
                         ))}
