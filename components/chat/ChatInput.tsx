@@ -1,13 +1,15 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { encryptText } from '@/lib/crypto';
 
 interface Props {
     friendId: string;
+    sharedKey: CryptoKey | null;
     onSend: (message: any) => void;
     defaultEphemeral?: boolean;
 }
 
-export default function ChatInput({ friendId, onSend, defaultEphemeral }: Props) {
+export default function ChatInput({ friendId, sharedKey, onSend, defaultEphemeral }: Props) {
     const [text, setText] = useState('');
     const [isEphemeral, setIsEphemeral] = useState(defaultEphemeral || false);
     const [sending, setSending] = useState(false);
@@ -24,12 +26,23 @@ export default function ChatInput({ friendId, onSend, defaultEphemeral }: Props)
 
         setSending(true);
         try {
+            let finalContent = text.trim();
+            let ivString: string | null = null;
+
+            // Encrypt content client-side using shared AES-GCM key if available
+            if (sharedKey) {
+                const { ciphertext, iv } = await encryptText(finalContent, sharedKey);
+                finalContent = ciphertext;
+                ivString = iv;
+            }
+
             const res = await fetch('/api/chat/messages', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     friendId,
-                    content: text.trim(),
+                    content: finalContent,
+                    iv: ivString,
                     type: isEphemeral ? 'EPHEMERAL_TEXT' : 'TEXT'
                 })
             });
@@ -40,7 +53,7 @@ export default function ChatInput({ friendId, onSend, defaultEphemeral }: Props)
                 setText('');
             }
         } catch (error) {
-            console.error(error);
+            console.error('Send error:', error);
         } finally {
             setSending(false);
         }
@@ -63,7 +76,15 @@ export default function ChatInput({ friendId, onSend, defaultEphemeral }: Props)
 
             if (!uploadRes.ok) throw new Error('Failed to upload image');
             const uploadData = await uploadRes.json();
-            const imageUrl = uploadData.url;
+            let imageUrl = uploadData.url;
+            let ivString: string | null = null;
+
+            // Encrypt image URL if shared key available
+            if (sharedKey) {
+                const { ciphertext, iv } = await encryptText(imageUrl, sharedKey);
+                imageUrl = ciphertext;
+                ivString = iv;
+            }
 
             // Send message
             const res = await fetch('/api/chat/messages', {
@@ -72,6 +93,7 @@ export default function ChatInput({ friendId, onSend, defaultEphemeral }: Props)
                 body: JSON.stringify({
                     friendId,
                     content: imageUrl,
+                    iv: ivString,
                     type: isEphemeral ? 'EPHEMERAL_IMAGE' : 'IMAGE'
                 })
             });
@@ -81,7 +103,7 @@ export default function ChatInput({ friendId, onSend, defaultEphemeral }: Props)
                 onSend(data.message);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Image upload error:', error);
             alert('Failed to upload image. Please try again.');
         } finally {
             setUploadingImage(false);

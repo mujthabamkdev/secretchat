@@ -19,6 +19,7 @@ model User {
   role           String    @default("USER") // USER, ADMIN
   suspendedUntil DateTime?
   blocked        Boolean   @default(false)
+  publicKey      String?
   createdAt      DateTime  @default(now())
 
   sentRequests     FriendRequest[] @relation("SentRequests")
@@ -117,7 +118,8 @@ model Message {
   conversationId String
   senderId       String
   type           MessageType @default(TEXT)
-  content        String?   // The text, or URL to the media
+  content        String?   // The text, or URL to the media (encrypted ciphertext)
+  iv             String?   // AES-GCM IV in Base64
   
   // Read Receipts (WhatsApp style)
   sentAt         DateTime  @default(now())

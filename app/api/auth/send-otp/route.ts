@@ -57,7 +57,6 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             message: 'Verification code sent',
-            debugOtp: otp
         });
     } catch (error: any) {
         console.error('Send OTP Error:', error);

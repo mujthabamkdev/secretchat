@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import ChatInput from './ChatInput';
+import { getOrGenerateLocalKeyPair, importPublicKey, deriveSharedKey, decryptText } from '@/lib/crypto';
 
 interface Message {
     id: string;
     senderId: string;
     type: string; // TEXT, IMAGE, EPHEMERAL_IMAGE, EPHEMERAL_TEXT
     content: string | null;
+    iv: string | null;
     sentAt: string;
     deliveredAt: string | null;
     readAt: string | null;
@@ -21,20 +23,66 @@ interface Props {
 }
 
 export default function ChatRoom({ currentUserId, friendId, friendName }: Props) {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [rawMessages, setRawMessages] = useState<Message[]>([]);
+    const [decryptedMessages, setDecryptedMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [autoDisappear, setAutoDisappear] = useState(false);
+    const [sharedKey, setSharedKey] = useState<CryptoKey | null>(null);
+    const [e2eeStatus, setE2eeStatus] = useState<string>('Initializing encryption...');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Fetch messages
+    // ── Setup E2EE Key Pair & Shared Secret ──
+    useEffect(() => {
+        let isMounted = true;
+
+        const initE2EE = async () => {
+            try {
+                // 1. Get or generate local user keypair
+                const { keyPair, publicKeyString } = await getOrGenerateLocalKeyPair(currentUserId);
+
+                // Ensure server has our public key stored
+                await fetch('/api/user/key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publicKey: publicKeyString })
+                });
+
+                // 2. Fetch friend's public key
+                const keyRes = await fetch(`/api/user/key?userId=${friendId}`);
+                if (!keyRes.ok) {
+                    if (isMounted) setE2eeStatus('Standard Secure Chat');
+                    return;
+                }
+
+                const keyData = await keyRes.json();
+                if (keyData.publicKey) {
+                    const peerPubKey = await importPublicKey(keyData.publicKey);
+                    const derived = await deriveSharedKey(keyPair.privateKey, peerPubKey);
+                    if (isMounted) {
+                        setSharedKey(derived);
+                        setE2eeStatus('🔒 End-to-End Encrypted (Signal ECDH)');
+                    }
+                } else {
+                    if (isMounted) setE2eeStatus('Waiting for peer E2EE key...');
+                }
+            } catch (e) {
+                console.error('E2EE Init error:', e);
+                if (isMounted) setE2eeStatus('Standard Encryption Active');
+            }
+        };
+
+        initE2EE();
+        return () => { isMounted = false; };
+    }, [currentUserId, friendId]);
+
+    // Fetch messages from server
     const fetchMessages = async () => {
         try {
             const res = await fetch(`/api/chat/messages?friendId=${friendId}`);
             if (!res.ok) return;
             const data = await res.json();
 
-            // Avoid state thrashing if nothing changed (naive check by length or latest id)
-            setMessages(prev => {
+            setRawMessages(prev => {
                 if (prev.length === data.messages.length && JSON.stringify(prev) === JSON.stringify(data.messages)) {
                     return prev;
                 }
@@ -53,16 +101,45 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
         return () => clearInterval(interval);
     }, [friendId]);
 
+    // Decrypt messages asynchronously whenever rawMessages or sharedKey updates
+    useEffect(() => {
+        let active = true;
+
+        const processDecryption = async () => {
+            const decryptedList = await Promise.all(
+                rawMessages.map(async (msg) => {
+                    if (!msg.content || !msg.iv || !sharedKey) {
+                        return msg; // Plaintext or burned message
+                    }
+                    try {
+                        const plain = await decryptText(msg.content, msg.iv, sharedKey);
+                        return { ...msg, content: plain };
+                    } catch (err) {
+                        // Return as-is if decryption fails or fallback
+                        return msg;
+                    }
+                })
+            );
+
+            if (active) {
+                setDecryptedMessages(decryptedList);
+            }
+        };
+
+        processDecryption();
+        return () => { active = false; };
+    }, [rawMessages, sharedKey]);
+
     // Scroll to bottom when new messages arrive
     useEffect(() => {
         if (!loading) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [messages, loading]);
+    }, [decryptedMessages, loading]);
 
     // Mark unread messages as READ
     useEffect(() => {
-        const unreadIds = messages
+        const unreadIds = rawMessages
             .filter(m => m.senderId !== currentUserId && !m.readAt && !m.isBurned)
             .map(m => m.id);
 
@@ -72,13 +149,12 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messageIds: unreadIds, status: 'READ' })
             }).then(() => {
-                // Instantly update local state to reflect read
-                setMessages(prev => prev.map(m =>
+                setRawMessages(prev => prev.map(m =>
                     unreadIds.includes(m.id) ? { ...m, readAt: new Date().toISOString() } : m
                 ));
             }).catch(console.error);
         }
-    }, [messages, currentUserId]);
+    }, [rawMessages, currentUserId]);
 
     const handleBurn = async (messageId: string) => {
         try {
@@ -87,7 +163,7 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messageIds: [messageId], burn: true })
             });
-            setMessages(prev => prev.map(m =>
+            setRawMessages(prev => prev.map(m =>
                 m.id === messageId ? { ...m, isBurned: true, content: null } : m
             ));
         } catch (error) {
@@ -102,7 +178,7 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messageId })
             });
-            setMessages(prev => prev.filter(m => m.id !== messageId));
+            setRawMessages(prev => prev.filter(m => m.id !== messageId));
         } catch (error) {
             console.error(error);
         }
@@ -112,8 +188,11 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '12px', padding: '10px' }}>
-            {/* Control Bar inside Chat Room */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px' }}>
+            {/* E2EE Indicator & Disappearing Toggle */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '4px' }}>
+                <div style={{ fontSize: '0.75rem', color: sharedKey ? '#10b981' : '#f59e0b', fontWeight: 600 }}>
+                    {e2eeStatus}
+                </div>
                 <button
                     onClick={() => setAutoDisappear(!autoDisappear)}
                     style={{
@@ -130,15 +209,14 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingBottom: '20px', paddingLeft: '8px', paddingRight: '8px' }}>
-                {messages.length === 0 && (
+                {decryptedMessages.length === 0 && (
                     <div style={{ textAlign: 'center', color: '#666', marginTop: 'auto', marginBottom: 'auto' }}>
                         No messages yet. Send a secret!
                     </div>
                 )}
-                {messages.map((msg, index) => {
+                {decryptedMessages.map((msg, index) => {
                     const isOwn = msg.senderId === currentUserId;
-                    const prevMsg = messages[index - 1];
-                    // If previous message is from same sender, reduce gap
+                    const prevMsg = decryptedMessages[index - 1];
                     const isGrouped = prevMsg && prevMsg.senderId === msg.senderId;
 
                     return (
@@ -161,7 +239,8 @@ export default function ChatRoom({ currentUserId, friendId, friendName }: Props)
 
             <ChatInput
                 friendId={friendId}
-                onSend={(newMsg: Message) => setMessages(prev => [...prev, newMsg])}
+                sharedKey={sharedKey}
+                onSend={(newMsg: Message) => setRawMessages(prev => [...prev, newMsg])}
                 defaultEphemeral={autoDisappear}
             />
         </div>
@@ -179,18 +258,17 @@ function MessageBubble({ message, isOwn, onBurn, onDelete }: { message: Message,
     let receiptIcon = null;
     if (isOwn) {
         if (message.readAt) {
-            receiptIcon = <span style={{ color: '#3b82f6', fontSize: '0.75rem', marginLeft: '4px' }}>✓✓</span>; // Blue ticks
+            receiptIcon = <span style={{ color: '#3b82f6', fontSize: '0.75rem', marginLeft: '4px' }}>✓✓</span>;
         } else if (message.deliveredAt) {
-            receiptIcon = <span style={{ color: '#9ca3af', fontSize: '0.75rem', marginLeft: '4px' }}>✓✓</span>; // Grey double
+            receiptIcon = <span style={{ color: '#9ca3af', fontSize: '0.75rem', marginLeft: '4px' }}>✓✓</span>;
         } else {
-            receiptIcon = <span style={{ color: '#9ca3af', fontSize: '0.75rem', marginLeft: '4px' }}>✓</span>; // Single
+            receiptIcon = <span style={{ color: '#9ca3af', fontSize: '0.75rem', marginLeft: '4px' }}>✓</span>;
         }
     }
 
     const handleViewEphemeral = () => {
         if (message.isBurned) return;
         setViewingEphemeral(true);
-        // Burn after 5 seconds
         setTimeout(() => {
             setViewingEphemeral(false);
             onBurn();

@@ -53,13 +53,12 @@ export async function POST(req: Request) {
         const currentUserId = cookieStore.get('userId')?.value;
         if (!currentUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { friendId, content, type = 'TEXT' } = await req.json();
+        const { friendId, content, iv, type = 'TEXT' } = await req.json();
 
         if (!friendId) {
             return NextResponse.json({ error: 'Missing friendId' }, { status: 400 });
         }
         if (!content && !['IMAGE', 'EPHEMERAL_IMAGE'].includes(type) && !['EPHEMERAL_TEXT', 'TEXT'].includes(type)) {
-            // we should have at least content for TEXT
             return NextResponse.json({ error: 'Message content is empty' }, { status: 400 });
         }
 
@@ -90,8 +89,8 @@ export async function POST(req: Request) {
                 senderId: currentUserId,
                 type,
                 content,
+                iv: iv || null,
                 sentAt: new Date(),
-                // Delivered / Read tracking won't be set until the other user receives it
             }
         });
 

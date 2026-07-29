@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import ReportModal from '@/components/ReportModal';
+import { getOrGenerateLocalKeyPair, importPublicKey, deriveSharedKey, encryptText, decryptText } from '@/lib/crypto';
 
 interface Props {
     sessionId: string;
@@ -30,6 +31,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const pcRef = useRef<RTCPeerConnection | null>(null);   // WebRTC connection
     const ringtoneRef = useRef<AudioContext | null>(null);
     const ringtoneIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const sharedKeyRef = useRef<CryptoKey | null>(null);
 
     // Signaling state
     const lastSignalIdRef = useRef<string>('');
@@ -43,8 +45,40 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     const [showReport, setShowReport] = useState(false);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
     const [callDuration, setCallDuration] = useState(0);
+    const [callSharedKey, setCallSharedKey] = useState<CryptoKey | null>(null);
 
     const otherAvatar = otherUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser.username}`;
+
+    // ── E2EE Setup for Signaling ──
+    useEffect(() => {
+        const initCallE2EE = async () => {
+            try {
+                const cookieId = document.cookie.split('userId=')[1]?.split(';')[0];
+                if (!cookieId) return;
+                const { keyPair, publicKeyString } = await getOrGenerateLocalKeyPair(cookieId);
+                
+                await fetch('/api/user/key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publicKey: publicKeyString })
+                });
+
+                const keyRes = await fetch(`/api/user/key?userId=${otherUser.id}`);
+                if (keyRes.ok) {
+                    const keyData = await keyRes.json();
+                    if (keyData.publicKey) {
+                        const peerPubKey = await importPublicKey(keyData.publicKey);
+                        const derived = await deriveSharedKey(keyPair.privateKey, peerPubKey);
+                        setCallSharedKey(derived);
+                        sharedKeyRef.current = derived;
+                    }
+                }
+            } catch (e) {
+                console.error('Call E2EE key error:', e);
+            }
+        };
+        initCallE2EE();
+    }, [otherUser.id]);
 
     // ── Call Duration Counter ──
     useEffect(() => {
@@ -109,6 +143,33 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         }
     }, []);
 
+    // Send encrypted or plain signal payload helper
+    const sendSignalPayload = useCallback(async (type: string, rawPayload: any) => {
+        let payload = rawPayload;
+        let iv: string | null = null;
+
+        if (sharedKeyRef.current) {
+            try {
+                const enc = await encryptText(JSON.stringify(rawPayload), sharedKeyRef.current);
+                payload = enc.ciphertext;
+                iv = enc.iv;
+            } catch (e) {
+                console.error('Signal encryption error:', e);
+            }
+        }
+
+        await fetch('/api/call/signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId,
+                type,
+                payload,
+                iv
+            }),
+        });
+    }, [sessionId]);
+
     // ── WebRTC Setup ──
     const setupWebRTC = useCallback(async () => {
         if (pcRef.current) return; // Already setup
@@ -137,15 +198,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         // Handle ICE candidates
         pc.onicecandidate = async (event) => {
             if (event.candidate) {
-                await fetch('/api/call/signal', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        sessionId,
-                        type: 'ICE',
-                        payload: event.candidate.toJSON(),
-                    }),
-                });
+                await sendSignalPayload('ICE', event.candidate.toJSON());
             }
         };
 
@@ -154,18 +207,9 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
             console.log('[WebRTC] Creating Offer...');
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
-
-            await fetch('/api/call/signal', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId,
-                    type: 'OFFER',
-                    payload: { type: offer.type, sdp: offer.sdp },
-                }),
-            });
+            await sendSignalPayload('OFFER', { type: offer.type, sdp: offer.sdp });
         }
-    }, [isCaller, sessionId]);
+    }, [isCaller, sendSignalPayload]);
 
     // ── Signal Polling ──
     useEffect(() => {
@@ -185,31 +229,34 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                         lastSignalIdRef.current = signal.id;
                         const pc = pcRef.current;
 
+                        let payload = signal.payload;
+                        // Decrypt if encrypted signal
+                        if (signal.iv && sharedKeyRef.current) {
+                            try {
+                                const decrypted = await decryptText(signal.payload, signal.iv, sharedKeyRef.current);
+                                payload = JSON.parse(decrypted);
+                            } catch (e) {
+                                console.error('Signal decryption error:', e);
+                            }
+                        }
+
                         if (signal.type === 'OFFER' && !isCaller && !hasProcessedOffer.current) {
                             console.log('[WebRTC] Received Offer');
                             hasProcessedOffer.current = true;
-                            await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
+                            await pc.setRemoteDescription(new RTCSessionDescription(payload));
                             const answer = await pc.createAnswer();
                             await pc.setLocalDescription(answer);
 
-                            await fetch('/api/call/signal', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    sessionId,
-                                    type: 'ANSWER',
-                                    payload: { type: answer.type, sdp: answer.sdp },
-                                }),
-                            });
+                            await sendSignalPayload('ANSWER', { type: answer.type, sdp: answer.sdp });
                         }
                         else if (signal.type === 'ANSWER' && isCaller && !hasProcessedAnswer.current) {
                             console.log('[WebRTC] Received Answer');
                             hasProcessedAnswer.current = true;
-                            await pc.setRemoteDescription(new RTCSessionDescription(signal.payload));
+                            await pc.setRemoteDescription(new RTCSessionDescription(payload));
                         }
                         else if (signal.type === 'ICE') {
                             try {
-                                await pc.addIceCandidate(new RTCIceCandidate(signal.payload));
+                                await pc.addIceCandidate(new RTCIceCandidate(payload));
                             } catch (e) {
                                 console.error('Error adding received ice candidate', e);
                             }
@@ -228,7 +275,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
         }
 
         return () => { polling = false; };
-    }, [callState, sessionId, isCaller]);
+    }, [callState, sessionId, isCaller, sendSignalPayload]);
 
     // ── Request microphone access ──
     const requestPermission = useCallback(async () => {
@@ -433,7 +480,9 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
     // ── Active Audio Call Screen ──
     return (
         <div className={styles.container}>
-            <div className={styles.status}>🔒 Encrypted Audio Call</div>
+            <div className={styles.status}>
+                {callSharedKey ? '🔒 E2EE Encrypted Audio Call' : '🔒 Secure Audio Call'}
+            </div>
             <div className={styles.audioCallScreen}>
                 <div className={styles.activeCallAvatarWrapper}>
                     <div className={`${styles.activeRipple} ${styles.ripple1}`} />
@@ -445,7 +494,7 @@ export default function ClientCallInterface({ sessionId, otherUser, isCaller, in
                 <h2 className={styles.activeName}>{otherUser.name}</h2>
                 <p className={styles.activeTimer}>{formatDuration(callDuration)}</p>
                 <div className={styles.audioBadge}>
-                    <span>🎙️ Audio Connected</span>
+                    <span>🎙️ {callSharedKey ? 'E2EE Audio Connected' : 'Audio Connected'}</span>
                 </div>
             </div>
 

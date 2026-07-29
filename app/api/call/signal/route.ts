@@ -10,7 +10,7 @@ export async function POST(req: Request) {
         if (!currentUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
-        const { sessionId, type, payload } = body;
+        const { sessionId, type, payload, iv } = body;
 
         if (!sessionId || !type || !payload) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
                 sessionId,
                 senderId: currentUserId,
                 type,
-                payload,
+                payload: iv ? { ciphertext: payload, iv } : payload,
             }
         });
 
