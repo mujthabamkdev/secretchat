@@ -18,7 +18,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className={styles.container}>
             <IncomingCallBanner />
             <nav className={styles.nav}>
-                <Link href="/dashboard" className={styles.logo}>SecretChat</Link>
+                <Link href="/dashboard" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img src="/icons/icon-192.png" alt="SecretChat" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />
+                    <span>SecretChat</span>
+                </Link>
                 <div className={styles.actions}>
                     <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#10b981', marginRight: '8px' }}>
                         💬 Chats

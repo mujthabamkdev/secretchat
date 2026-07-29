@@ -6,9 +6,9 @@ export default function Home() {
         <main className={styles.main}>
             {/* Navigation */}
             <nav className={styles.nav}>
-                <div className={styles.logo}>
-                    <span className={styles.logoIcon}>🔒</span>
-                    SecretChat
+                <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img src="/icons/icon-192.png" alt="SecretChat Logo" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
+                    <span>SecretChat</span>
                 </div>
                 <div className={styles.navLinks}>
                     <Link href="/auth/login" className={styles.navLink}>Login</Link>
@@ -26,12 +26,12 @@ export default function Home() {
                 </div>
 
                 <h1 className={styles.heroTitle}>
-                    Private Video Calls,{' '}
-                    <span className={styles.gradientText}>Redefined.</span>
+                    Private Audio Calls,{' '}
+                    <span className={styles.gradientText}>Reimagined.</span>
                 </h1>
 
                 <p className={styles.heroSub}>
-                    Connect with people you trust through secure, encrypted video calls.
+                    Connect with people you trust through secure, zero-knowledge encrypted audio calls & secret messaging.
                     No tracking. No ads. Just real conversations.
                 </p>
 
