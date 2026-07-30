@@ -59,6 +59,11 @@ export async function POST(req: Request) {
         const userId = cookieStore.get('userId')?.value;
         if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+        if (!user) {
+            return NextResponse.json({ error: 'User session invalid. Please log in again.' }, { status: 401 });
+        }
+
         const { content, commentsRestricted = false } = await req.json();
 
         if (!content || !content.trim()) {

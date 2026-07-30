@@ -83,6 +83,9 @@ export default function TopicsFeed() {
                 setNewContent('');
                 setRestrictComments(false);
                 setShowCreateModal(false);
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to post topic');
             }
         } catch (e) {
             console.error(e);
