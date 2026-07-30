@@ -42,13 +42,23 @@ export default async function ChatPage({ params }: { params: Promise<{ friendId:
             position: 'fixed',
             inset: 0,
             display: 'flex',
-            flexDirection: 'column',
-            width: '100vw',
-            height: '100dvh',
-            background: '#090d16',
+            justifyContent: 'center',
+            background: '#04070d',
             overflow: 'hidden',
             zIndex: 99
         }}>
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                maxWidth: '480px',
+                height: '100dvh',
+                background: '#090d16',
+                borderLeft: '1px solid #1e293b',
+                borderRight: '1px solid #1e293b',
+                boxShadow: '0 0 40px rgba(0, 0, 0, 0.6)',
+                position: 'relative'
+            }}>
             {/* Header */}
             <header style={{
                 display: 'flex',
@@ -80,5 +90,6 @@ export default async function ChatPage({ params }: { params: Promise<{ friendId:
                 <ChatRoom currentUserId={currentUserId} friendId={friend.id} friendName={friend.name} />
             </div>
         </div>
-    );
+    </div>
+);
 }
