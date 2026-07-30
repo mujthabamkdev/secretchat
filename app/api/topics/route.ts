@@ -70,13 +70,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Topic content cannot be empty' }, { status: 400 });
         }
 
-        const topicModel = (prisma as any).topic || (prisma as any).Topic;
-        if (!topicModel) {
-            console.error('Prisma topic model undefined. Re-generating client...');
-            return NextResponse.json({ error: 'Database model initializing. Please try posting again.' }, { status: 500 });
-        }
-
-        const topic = await topicModel.create({
+        const topic = await prisma.topic.create({
             data: {
                 authorId: userId,
                 content: content.trim(),
