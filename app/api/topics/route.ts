@@ -70,7 +70,40 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Topic content cannot be empty' }, { status: 400 });
         }
 
-        const topic = await prisma.topic.create({
+        const topicDelegate = (prisma as any).topic || (prisma as any).Topic;
+        if (!topicDelegate || typeof topicDelegate.create !== 'function') {
+            console.error('Prisma topic delegate not cached. Instantiating fresh PrismaClient instance...');
+            const { PrismaClient } = await import('@prisma/client');
+            const freshPrisma = new PrismaClient();
+            const created = await freshPrisma.topic.create({
+                data: {
+                    authorId: userId,
+                    content: content.trim(),
+                    commentsRestricted: Boolean(commentsRestricted)
+                },
+                include: {
+                    author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+                    likes: { select: { userId: true } },
+                    _count: { select: { likes: true, comments: true } }
+                }
+            });
+            await freshPrisma.$disconnect();
+            return NextResponse.json({
+                topic: {
+                    id: created.id,
+                    author: created.author,
+                    content: created.content,
+                    commentsRestricted: created.commentsRestricted,
+                    createdAt: created.createdAt,
+                    likesCount: 0,
+                    commentsCount: 0,
+                    isLiked: false,
+                    isAuthor: true
+                }
+            });
+        }
+
+        const topic = await topicDelegate.create({
             data: {
                 authorId: userId,
                 content: content.trim(),
