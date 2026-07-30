@@ -54,12 +54,14 @@ export async function GET(req: Request) {
 
 // POST /api/topics - Create a new topic
 export async function POST(req: Request) {
+    const { PrismaClient } = await import('@prisma/client');
+    const db = new PrismaClient();
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get('userId')?.value;
         if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+        const user = await db.user.findUnique({ where: { id: userId }, select: { id: true } });
         if (!user) {
             return NextResponse.json({ error: 'User session invalid. Please log in again.' }, { status: 401 });
         }
@@ -70,40 +72,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Topic content cannot be empty' }, { status: 400 });
         }
 
-        const topicDelegate = (prisma as any).topic || (prisma as any).Topic;
-        if (!topicDelegate || typeof topicDelegate.create !== 'function') {
-            console.error('Prisma topic delegate not cached. Instantiating fresh PrismaClient instance...');
-            const { PrismaClient } = await import('@prisma/client');
-            const freshPrisma = new PrismaClient();
-            const created = await freshPrisma.topic.create({
-                data: {
-                    authorId: userId,
-                    content: content.trim(),
-                    commentsRestricted: Boolean(commentsRestricted)
-                },
-                include: {
-                    author: { select: { id: true, username: true, name: true, avatarUrl: true } },
-                    likes: { select: { userId: true } },
-                    _count: { select: { likes: true, comments: true } }
-                }
-            });
-            await freshPrisma.$disconnect();
-            return NextResponse.json({
-                topic: {
-                    id: created.id,
-                    author: created.author,
-                    content: created.content,
-                    commentsRestricted: created.commentsRestricted,
-                    createdAt: created.createdAt,
-                    likesCount: 0,
-                    commentsCount: 0,
-                    isLiked: false,
-                    isAuthor: true
-                }
-            });
-        }
-
-        const topic = await topicDelegate.create({
+        const topic = await db.topic.create({
             data: {
                 authorId: userId,
                 content: content.trim(),
@@ -132,5 +101,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('Create topic error:', error);
         return NextResponse.json({ error: error?.message || 'Failed to post topic. Please try again.' }, { status: 500 });
+    } finally {
+        await db.$disconnect();
     }
 }
