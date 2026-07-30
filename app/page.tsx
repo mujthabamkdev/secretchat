@@ -1,8 +1,17 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { ShieldCheck, Video, Users, ArrowRight } from 'lucide-react';
 import styles from './page.module.css';
 
-export default function Home() {
+export default async function Home() {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('userId')?.value;
+
+    if (userId) {
+        redirect('/dashboard');
+    }
+
     return (
         <main className={styles.main}>
             {/* Navigation */}
