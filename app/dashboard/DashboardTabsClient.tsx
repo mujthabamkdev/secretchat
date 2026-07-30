@@ -57,7 +57,7 @@ export default function DashboardTabsClient({
                                 <ShieldCheck size={16} /> Admin Panel
                             </Link>
                         )}
-                        <Link href="/dashboard/chats" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', background: 'rgba(20, 184, 166, 0.12)', border: '1px solid rgba(20, 184, 166, 0.25)', color: '#14b8a6', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
+                        <Link href="/dashboard/chats" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', background: 'rgba(163, 230, 53, 0.12)', border: '1px solid rgba(163, 230, 53, 0.25)', color: '#a3e635', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
                             <MessageSquare size={16} /> Chats
                         </Link>
                     </div>
