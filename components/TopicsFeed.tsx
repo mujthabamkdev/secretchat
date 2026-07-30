@@ -60,6 +60,8 @@ export default function TopicsFeed() {
         fetchTopics();
     }, []);
 
+    const [showCreateModal, setShowCreateModal] = useState(false);
+
     const handleCreateTopic = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newContent.trim() || submitting) return;
@@ -80,6 +82,7 @@ export default function TopicsFeed() {
                 setTopics(prev => [data.topic, ...prev]);
                 setNewContent('');
                 setRestrictComments(false);
+                setShowCreateModal(false);
             }
         } catch (e) {
             console.error(e);
@@ -221,75 +224,141 @@ export default function TopicsFeed() {
     };
 
     return (
-        <div className="container" style={{ padding: '16px 20px 40px' }}>
-            {/* Create Topic Box */}
-            <form onSubmit={handleCreateTopic} style={{
-                background: '#111827',
-                border: '1px solid #1e293b',
-                borderRadius: '16px',
-                padding: '16px',
-                marginBottom: '24px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#14b8a6', fontWeight: 700, fontSize: '0.9rem' }}>
-                    <Sparkles size={18} />
-                    <span>Post a Public Topic</span>
+        <div style={{ width: '100%' }}>
+            {/* Top Action Header Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Public Topics</h2>
+                    <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0' }}>Explore secret topics shared by the community</p>
                 </div>
-
-                <textarea
-                    value={newContent}
-                    onChange={(e) => setNewContent(e.target.value)}
-                    placeholder="Share something secret or ask a question..."
-                    rows={3}
-                    maxLength={300}
+                <button
+                    onClick={() => setShowCreateModal(true)}
                     style={{
-                        width: '100%',
-                        background: '#090d16',
-                        border: '1px solid #1e293b',
-                        borderRadius: '12px',
-                        color: '#f8fafc',
-                        padding: '12px',
-                        fontSize: '0.95rem',
-                        outline: 'none',
-                        resize: 'none',
-                        fontFamily: 'inherit',
-                        lineHeight: '1.4'
+                        background: 'var(--brand-gradient)',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '8px 16px',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 10px rgba(20, 184, 166, 0.3)'
                     }}
-                />
+                >
+                    <Sparkles size={16} />
+                    <span>+ New Topic</span>
+                </button>
+            </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#94a3b8', cursor: 'pointer', userSelect: 'none' }}>
-                        <input
-                            type="checkbox"
-                            checked={restrictComments}
-                            onChange={(e) => setRestrictComments(e.target.checked)}
-                            style={{ accentColor: '#14b8a6', cursor: 'pointer' }}
+            {/* Create Topic Modal / Drawer */}
+            {showCreateModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 99999,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '20px'
+                }}>
+                    <form onSubmit={handleCreateTopic} style={{
+                        width: '100%',
+                        maxWidth: '460px',
+                        background: '#111827',
+                        border: '1px solid #1e293b',
+                        borderRadius: '20px',
+                        padding: '20px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.6)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6', fontWeight: 700, fontSize: '1rem' }}>
+                                <Sparkles size={18} />
+                                <span>Create a New Topic</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowCreateModal(false)}
+                                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <textarea
+                            value={newContent}
+                            onChange={(e) => setNewContent(e.target.value)}
+                            placeholder="Share something secret or ask a question..."
+                            rows={4}
+                            maxLength={300}
+                            style={{
+                                width: '100%',
+                                background: '#090d16',
+                                border: '1px solid #1e293b',
+                                borderRadius: '12px',
+                                color: '#f8fafc',
+                                padding: '12px',
+                                fontSize: '0.95rem',
+                                outline: 'none',
+                                resize: 'none',
+                                fontFamily: 'inherit',
+                                lineHeight: '1.4'
+                            }}
                         />
-                        <span>Restrict commenting</span>
-                    </label>
 
-                    <button
-                        type="submit"
-                        disabled={!newContent.trim() || submitting}
-                        style={{
-                            background: newContent.trim() ? 'var(--brand-gradient)' : '#1e293b',
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: '20px',
-                            padding: '8px 18px',
-                            fontSize: '0.85rem',
-                            fontWeight: 700,
-                            cursor: newContent.trim() && !submitting ? 'pointer' : 'not-allowed',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                        }}
-                    >
-                        <span>{submitting ? 'Posting...' : 'Post Topic'}</span>
-                    </button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#94a3b8', cursor: 'pointer', userSelect: 'none' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={restrictComments}
+                                    onChange={(e) => setRestrictComments(e.target.checked)}
+                                    style={{ accentColor: '#14b8a6', cursor: 'pointer' }}
+                                />
+                                <span>Restrict commenting</span>
+                            </label>
+
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    style={{
+                                        background: 'transparent',
+                                        color: '#94a3b8',
+                                        border: '1px solid #1e293b',
+                                        borderRadius: '20px',
+                                        padding: '8px 14px',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!newContent.trim() || submitting}
+                                    style={{
+                                        background: newContent.trim() ? 'var(--brand-gradient)' : '#1e293b',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        borderRadius: '20px',
+                                        padding: '8px 18px',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 700,
+                                        cursor: newContent.trim() && !submitting ? 'pointer' : 'not-allowed'
+                                    }}
+                                >
+                                    {submitting ? 'Posting...' : 'Post Topic'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            )}
 
             {/* Feed List */}
             {loading ? (
