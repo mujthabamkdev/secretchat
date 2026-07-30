@@ -20,20 +20,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className={`${styles.container} secure-chat-content`}>
             <ScreenshotProtection />
             <IncomingCallBanner />
-            <nav className={styles.nav}>
-                <Link href="/dashboard" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img src="/icons/icon-192.png" alt="SecretChat" style={{ width: '28px', height: '28px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(20, 184, 166, 0.25)' }} />
-                    <span style={{ fontFamily: "var(--font-outfit), 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 900, letterSpacing: '-0.6px', fontSize: '19px', color: '#ffffff' }}>
-                        SecretChat
-                    </span>
-                </Link>
-                <div className={styles.actions} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#14b8a6', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MessageSquare size={18} /> Chats
+            <div className={styles.navWrapper}>
+                <nav className={styles.nav}>
+                    <Link href="/dashboard" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img src="/icons/icon-192.png" alt="SecretChat" style={{ width: '28px', height: '28px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(20, 184, 166, 0.25)' }} />
+                        <span style={{ fontFamily: "var(--font-outfit), 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 900, letterSpacing: '-0.6px', fontSize: '19px', color: '#ffffff' }}>
+                            SecretChat
+                        </span>
                     </Link>
-                    <NotificationBell />
-                </div>
-            </nav>
+                    <div className={styles.actions} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#14b8a6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <MessageSquare size={18} /> Chats
+                        </Link>
+                        <NotificationBell />
+                    </div>
+                </nav>
+            </div>
             <main className={styles.mainContent}>
                 {children}
             </main>
