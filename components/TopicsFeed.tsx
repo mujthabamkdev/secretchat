@@ -250,7 +250,7 @@ export default function TopicsFeed() {
                     onClick={() => setShowCreateModal(true)}
                     style={{
                         background: 'var(--brand-gradient)',
-                        color: '#ffffff',
+                        color: '#050811',
                         border: 'none',
                         borderRadius: '20px',
                         padding: '8px 16px',
