@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { cookies } from 'next/headers';
+import prisma from '@/lib/prisma';
 
 // GET /api/topics - List all topics with pagination/cursor ordering by createdAt DESC (newest at top)
 export async function GET(req: Request) {
-    const db = new PrismaClient();
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get('userId')?.value;
@@ -14,7 +13,7 @@ export async function GET(req: Request) {
         const cursor = searchParams.get('cursor');
         const limit = 10;
 
-        const topics = await db.topic.findMany({
+        const topics = await prisma.topic.findMany({
             take: limit + 1,
             ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
             orderBy: { createdAt: 'desc' },
@@ -50,20 +49,17 @@ export async function GET(req: Request) {
     } catch (error) {
         console.error('Fetch topics error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    } finally {
-        await db.$disconnect();
     }
 }
 
 // POST /api/topics - Create a new topic
 export async function POST(req: Request) {
-    const db = new PrismaClient();
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get('userId')?.value;
         if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const user = await db.user.findUnique({ where: { id: userId }, select: { id: true } });
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
         if (!user) {
             return NextResponse.json({ error: 'User session invalid. Please log in again.' }, { status: 401 });
         }
@@ -74,7 +70,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Topic content cannot be empty' }, { status: 400 });
         }
 
-        const topic = await db.topic.create({
+        const topic = await prisma.topic.create({
             data: {
                 authorId: userId,
                 content: content.trim(),
@@ -103,7 +99,5 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('Create topic error:', error);
         return NextResponse.json({ error: error?.message || 'Failed to post topic. Please try again.' }, { status: 500 });
-    } finally {
-        await db.$disconnect();
     }
 }
