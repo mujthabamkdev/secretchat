@@ -6,8 +6,15 @@ export default function ScreenshotProtection() {
     const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
     useEffect(() => {
-        // 1. Prevent Right Click & Context Menu
+        const isLocal = typeof window !== 'undefined' && (
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            process.env.NODE_ENV === 'development'
+        );
+
+        // 1. Prevent Right Click & Context Menu (only in production)
         const handleContextMenu = (e: MouseEvent) => {
+            if (isLocal) return; // Allow right click in local run
             e.preventDefault();
             showWarning('Right-click context menu is disabled for privacy protection.');
         };
@@ -39,8 +46,9 @@ export default function ScreenshotProtection() {
             }
         };
 
-        // 3. Blur window when window loses focus (prevent background desktop capture / app switcher preview)
+        // 3. Blur window when window loses focus (only in production)
         const handleVisibilityChange = () => {
+            if (isLocal) return;
             if (document.hidden) {
                 document.body.classList.add('secure-blur');
             } else {
@@ -49,10 +57,12 @@ export default function ScreenshotProtection() {
         };
 
         const handleBlur = () => {
+            if (isLocal) return;
             document.body.classList.add('secure-blur');
         };
 
         const handleFocus = () => {
+            if (isLocal) return;
             document.body.classList.remove('secure-blur');
         };
 

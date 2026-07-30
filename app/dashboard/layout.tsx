@@ -29,12 +29,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
                         </span>
                     </Link>
                     <div className={styles.actions} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Link href="/dashboard/topics" className={styles.navLink} style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <Flame size={18} /> Topics
-                        </Link>
-                        <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#14b8a6', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <MessageSquare size={18} /> Chats
-                        </Link>
                         <NotificationBell />
                     </div>
                 </nav>

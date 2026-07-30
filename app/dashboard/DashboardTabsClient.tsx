@@ -51,12 +51,15 @@ export default function DashboardTabsClient({
             {/* Header */}
             <header className={styles.header} style={{ marginTop: 0, marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', marginTop: 0 }}>
-                    <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {isAdmin && (
                             <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
                                 <ShieldCheck size={16} /> Admin Panel
                             </Link>
                         )}
+                        <Link href="/dashboard/chats" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '999px', background: 'rgba(20, 184, 166, 0.12)', border: '1px solid rgba(20, 184, 166, 0.25)', color: '#14b8a6', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }}>
+                            <MessageSquare size={16} /> Chats
+                        </Link>
                     </div>
                     <Link href="/dashboard/settings" className={styles.profileButton} title="Profile Settings" style={{ margin: 0 }}>
                         <img src={profileAvatar} alt="Profile" />
