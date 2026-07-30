@@ -140,7 +140,7 @@ export default function DashboardTabsClient({
             {/* TAB CONTENT: MY CONNECTIONS */}
             {activeTab === 'connections' && (
                 <div>
-                    {/* Search Bar for Connections & Community */}
+                    {/* Search Bar for Connections */}
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -154,7 +154,7 @@ export default function DashboardTabsClient({
                         <Search size={18} color="#64748b" />
                         <input
                             type="text"
-                            placeholder="Search connections or community..."
+                            placeholder="Search your connections..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             style={{
@@ -168,78 +168,62 @@ export default function DashboardTabsClient({
                         />
                     </div>
 
-                    {/* Approved Connections Section */}
-                    {filteredFriends.length > 0 && (
-                        <div className={styles.friendsSection} style={{ marginBottom: '24px' }}>
-                            <h3 style={{ color: '#f8fafc', fontSize: '1rem', fontWeight: 700, marginBottom: '12px' }}>Approved Connections</h3>
-                            <div className={styles.userList}>
-                                {filteredFriends.map((friend) => (
-                                    <div key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Link href={`/dashboard/profile/${friend.id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flex: 1, minWidth: 0, paddingRight: '12px' }}>
-                                            <div className={styles.avatar}>
-                                                <img src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`} alt={friend.name} />
+                    {/* Connections List */}
+                    <div className={styles.friendsSection}>
+                        <div className={styles.userList}>
+                            {filteredFriends.map((friend) => (
+                                <div key={friend.id} className={styles.userCard} style={{ borderColor: '#10b981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Link href={`/dashboard/profile/${friend.id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flex: 1, minWidth: 0, paddingRight: '12px' }}>
+                                        <div className={styles.avatar}>
+                                            <img src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`} alt={friend.name} />
+                                        </div>
+                                        <div className={styles.userInfo} style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div className={styles.userName}>{friend.name}</div>
+                                                {friend.latestMessage && (
+                                                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                                                        {new Date(friend.latestMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className={styles.userInfo} style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <div className={styles.userName}>{friend.name}</div>
-                                                    {friend.latestMessage && (
-                                                        <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
-                                                            {new Date(friend.latestMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className={styles.userHandle}>@{friend.username}</div>
-                                                <div style={{
-                                                    fontSize: '0.8rem', color: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? '#10b981' : '#888',
-                                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '4px', fontStyle: friend.latestMessage?.type.includes('EPHEMERAL') ? 'italic' : 'normal',
-                                                    fontWeight: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? 'bold' : 'normal'
-                                                }}>
-                                                    {friend.latestMessage
-                                                        ? (friend.latestMessage.type.includes('EPHEMERAL') ? '🔥 Disappearing message' : (friend.latestMessage.content || 'Media message'))
-                                                        : 'Start a conversation'}
-                                                </div>
+                                            <div className={styles.userHandle}>@{friend.username}</div>
+                                            <div style={{
+                                                fontSize: '0.8rem', color: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? '#10b981' : '#888',
+                                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '4px', fontStyle: friend.latestMessage?.type.includes('EPHEMERAL') ? 'italic' : 'normal',
+                                                fontWeight: friend.latestMessage && !friend.latestMessage.readAt && friend.latestMessage.senderId !== currentUserId ? 'bold' : 'normal'
+                                            }}>
+                                                {friend.latestMessage
+                                                    ? (friend.latestMessage.type.includes('EPHEMERAL') ? '🔥 Disappearing message' : (friend.latestMessage.content || 'Media message'))
+                                                    : 'Start a conversation'}
                                             </div>
-                                        </Link>
-                                        <Link
-                                            href={`/dashboard/chat/${friend.id}`}
-                                            style={{
-                                                padding: '8px 12px',
-                                                background: 'rgba(20, 184, 166, 0.12)',
-                                                border: '1px solid rgba(20, 184, 166, 0.25)',
-                                                color: '#14b8a6',
-                                                borderRadius: '10px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                textDecoration: 'none',
-                                                transition: 'all 0.2s'
-                                            }}
-                                            title="Go to Chat"
-                                        >
-                                            <MessageSquare size={18} />
-                                        </Link>
-                                    </div>
-                                ))}
-                            </div>
+                                        </div>
+                                    </Link>
+                                    <Link
+                                        href={`/dashboard/chat/${friend.id}`}
+                                        style={{
+                                            padding: '8px 12px',
+                                            background: 'rgba(20, 184, 166, 0.12)',
+                                            border: '1px solid rgba(20, 184, 166, 0.25)',
+                                            color: '#14b8a6',
+                                            borderRadius: '10px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        title="Go to Chat"
+                                    >
+                                        <MessageSquare size={18} />
+                                    </Link>
+                                </div>
+                            ))}
+                            {filteredFriends.length === 0 && (
+                                <p style={{ textAlign: 'center', padding: '40px 0', color: '#64748b', fontSize: '0.88rem' }}>
+                                    {searchQuery ? 'No matching connections found.' : 'No connections added yet.'}
+                                </p>
+                            )}
                         </div>
-                    )}
-
-                    {/* Community Section */}
-                    <h3 style={{ color: '#f8fafc', fontSize: '1rem', fontWeight: 700, marginBottom: '12px' }}>Explore Community</h3>
-                    <div className={styles.userList}>
-                        {filteredCommunity.map((user) => (
-                            <Link href={`/dashboard/profile/${user.id}`} key={user.id} className={styles.userCard}>
-                                <div className={styles.avatar}>
-                                    <img src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} alt={user.name} />
-                                </div>
-                                <div className={styles.userInfo}>
-                                    <div className={styles.userName}>{user.name}</div>
-                                    <div className={styles.userHandle}>@{user.username}</div>
-                                </div>
-                                <div className={styles.chevron}>→</div>
-                            </Link>
-                        ))}
-                        {filteredCommunity.length === 0 && <p style={{ textAlign: 'center', padding: '30px 0', color: '#64748b', fontSize: '0.88rem' }}>No users found.</p>}
                     </div>
                 </div>
             )}
