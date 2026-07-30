@@ -437,29 +437,31 @@ export default function TopicsFeed() {
                                 {topic.content}
                             </div>
 
-                            {/* Footer Interaction Bar */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '0.8rem', color: '#94a3b8' }}>
+                            {/* Footer Interaction Bar (Wakie Style: Like 👍 N  Comment 💬 N) */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '0.86rem', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '12px' }}>
                                 <button
                                     onClick={(e) => handleLikeTopic(topic.id, e)}
                                     style={{
                                         background: 'transparent',
                                         border: 'none',
-                                        color: topic.isLiked ? '#ef4444' : '#94a3b8',
+                                        color: topic.isLiked ? '#f59e0b' : '#94a3b8',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '5px',
+                                        gap: '6px',
                                         fontWeight: 600,
                                         padding: 0
                                     }}
                                 >
-                                    <Heart size={18} fill={topic.isLiked ? '#ef4444' : 'none'} />
-                                    <span>{topic.likesCount}</span>
+                                    <span>Like</span>
+                                    <span style={{ fontSize: '0.95rem' }}>👍</span>
+                                    {topic.likesCount > 0 && <span style={{ color: '#f59e0b', marginLeft: '2px' }}>{topic.likesCount}</span>}
                                 </button>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
-                                    <MessageSquare size={17} />
-                                    <span>{topic.commentsCount}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#94a3b8', cursor: 'pointer' }}>
+                                    <span>Comment</span>
+                                    <span style={{ fontSize: '0.95rem' }}>💬</span>
+                                    {topic.commentsCount > 0 && <span style={{ color: '#f59e0b', marginLeft: '2px' }}>{topic.commentsCount}</span>}
                                 </div>
 
                                 {topic.commentsRestricted && (

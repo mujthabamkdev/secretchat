@@ -1,11 +1,11 @@
 :root {
     --background: #050811;
     --foreground: #f8fafc;
-    --primary: #a3e635;
-    --primary-hover: #bef264;
-    --secondary: #34d399;
-    --secondary-hover: #6ee7b7;
-    --brand-gradient: linear-gradient(135deg, #a3e635 0%, #34d399 100%);
+    --primary: #15803d;
+    --primary-hover: #166534;
+    --secondary: #0f766e;
+    --secondary-hover: #115e59;
+    --brand-gradient: linear-gradient(135deg, #15803d 0%, #0f766e 100%);
     --surface: #0e1626;
     --surface-hover: #172236;
     --border: #1e2d42;
