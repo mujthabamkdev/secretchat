@@ -23,8 +23,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <div className={styles.navWrapper}>
                 <nav className={styles.nav}>
                     <Link href="/dashboard" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img src="/icons/icon-192.png" alt="SecretChat" style={{ width: '28px', height: '28px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(20, 184, 166, 0.25)' }} />
-                        <span style={{ fontFamily: "var(--font-outfit), 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 900, letterSpacing: '-0.6px', fontSize: '19px', color: '#ffffff' }}>
+                        <img src="/icons/icon-192.png" alt="SecretChat" style={{ width: '28px', height: '28px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(163, 230, 53, 0.25)' }} />
+                        <span style={{
+                            fontFamily: "var(--font-fredoka), 'Fredoka', 'Comfortaa', system-ui, sans-serif",
+                            fontWeight: 700,
+                            letterSpacing: '0.2px',
+                            fontSize: '22px',
+                            color: '#ffffff',
+                            textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                        }}>
                             SecretChat
                         </span>
                     </Link>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Fredoka } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
@@ -8,6 +8,12 @@ const outfit = Outfit({
     subsets: ["latin"],
     weight: ["400", "600", "800", "900"],
     variable: "--font-outfit"
+});
+
+const fredoka = Fredoka({
+    subsets: ["latin"],
+    weight: ["600", "700"],
+    variable: "--font-fredoka"
 });
 
 export const metadata: Metadata = {
@@ -40,7 +46,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={outfit.className}>
+            <body className={`${outfit.variable} ${fredoka.variable} ${outfit.className}`}>
                 <PwaRegister />
                 {children}
                 <PwaInstallPrompt />
