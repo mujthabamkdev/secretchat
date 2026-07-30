@@ -61,6 +61,13 @@ export default function TopicsFeed() {
     }, []);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [warningToast, setWarningToast] = useState<string | null>(null);
+    const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+    const triggerWarning = (msg: string) => {
+        setWarningToast(msg);
+        setTimeout(() => setWarningToast(null), 4000);
+    };
 
     const handleCreateTopic = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,10 +92,11 @@ export default function TopicsFeed() {
                 setShowCreateModal(false);
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to post topic');
+                triggerWarning(data.error || 'Failed to post topic. Please try again.');
             }
         } catch (e) {
             console.error(e);
+            triggerWarning('Network error. Failed to post topic.');
         } finally {
             setSubmitting(false);
         }
@@ -128,17 +136,25 @@ export default function TopicsFeed() {
 
     const handleDeleteTopic = async (topicId: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm('Are you sure you want to delete this topic?')) return;
-
-        try {
-            const res = await fetch(`/api/topics/${topicId}`, { method: 'DELETE' });
-            if (res.ok) {
-                setTopics(prev => prev.filter(t => t.id !== topicId));
-                if (activeTopic?.id === topicId) setActiveTopic(null);
+        setConfirmModal({
+            message: 'Are you sure you want to permanently delete this topic?',
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/topics/${topicId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        setTopics(prev => prev.filter(t => t.id !== topicId));
+                        if (activeTopic?.id === topicId) setActiveTopic(null);
+                    } else {
+                        triggerWarning('Failed to delete topic.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    triggerWarning('Error deleting topic.');
+                } finally {
+                    setConfirmModal(null);
+                }
             }
-        } catch (e) {
-            console.error(e);
-        }
+        });
     };
 
     const handleToggleRestriction = async (topicId: string, currentRestricted: boolean, e: React.MouseEvent) => {
@@ -195,7 +211,7 @@ export default function TopicsFeed() {
                 setCommentText('');
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to post comment');
+                triggerWarning(data.error || 'Failed to post comment');
             }
         } catch (e) {
             console.error(e);
@@ -606,6 +622,96 @@ export default function TopicsFeed() {
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Slide-in Warning Toast */}
+            {warningToast && (
+                <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(239, 68, 68, 0.95)',
+                    color: '#ffffff',
+                    padding: '12px 20px',
+                    borderRadius: '30px',
+                    boxShadow: '0 8px 30px rgba(239, 68, 68, 0.3)',
+                    backdropFilter: 'blur(12px)',
+                    zIndex: 999999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    animation: 'slideDown 0.25s ease'
+                }}>
+                    <span>⚠️ {warningToast}</span>
+                    <button onClick={() => setWarningToast(null)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 0 }}>
+                        <X size={16} />
+                    </button>
+                </div>
+            )}
+
+            {/* Modern Custom Confirmation Modal */}
+            {confirmModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 999999,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#111827',
+                        border: '1px solid #1e293b',
+                        borderRadius: '20px',
+                        padding: '24px',
+                        maxWidth: '400px',
+                        width: '100%',
+                        textAlign: 'center',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.6)'
+                    }}>
+                        <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🗑️</div>
+                        <h3 style={{ fontSize: '1.1rem', color: '#f8fafc', margin: '0 0 8px', fontWeight: 700 }}>Confirm Deletion</h3>
+                        <p style={{ fontSize: '0.88rem', color: '#94a3b8', margin: '0 0 20px', lineHeight: '1.4' }}>{confirmModal.message}</p>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setConfirmModal(null)}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px',
+                                    borderRadius: '12px',
+                                    border: '1px solid #1e293b',
+                                    background: 'transparent',
+                                    color: '#94a3b8',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => confirmModal.onConfirm()}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    background: '#ef4444',
+                                    color: '#ffffff',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

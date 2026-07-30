@@ -96,8 +96,8 @@ export async function POST(req: Request) {
                 isAuthor: true
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create topic error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: error?.message || 'Failed to post topic. Please try again.' }, { status: 500 });
     }
 }
