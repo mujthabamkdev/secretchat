@@ -40,7 +40,7 @@ const displayNameParts = [
 function generateUsers(count: number) {
     const users = new Set<string>();
     const emails = new Set<string>();
-    const result: { username: string; email: string; name: string; password: string; avatarUrl: string }[] = [];
+    const result: { username: string; email: string; name: string; password: string; avatarUrl: string; bio?: string }[] = [];
 
     while (result.length < count) {
         const first = firstNames[Math.floor(Math.random() * firstNames.length)];

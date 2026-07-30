@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
                     marginBottom: '16px',
                     display: 'flex',
                     alignItems: 'center',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     flexWrap: 'wrap',
                     gap: '12px'
                 }}>
