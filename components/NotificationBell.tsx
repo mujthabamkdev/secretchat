@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Bell, User, PhoneCall, ChevronRight } from 'lucide-react';
+import { Bell, User, PhoneCall, ChevronRight, Heart, MessageSquare } from 'lucide-react';
 import styles from './NotificationBell.module.css';
 
 interface NotifUser {
@@ -12,8 +12,9 @@ interface NotifUser {
 
 interface Notification {
     id: string;
-    type: 'friend_request' | 'missed_call';
+    type: 'friend_request' | 'missed_call' | 'topic_like' | 'topic_comment';
     user: NotifUser;
+    topicId?: string;
     time: string;
 }
 
@@ -97,10 +98,17 @@ export default function NotificationBell() {
                                             <strong>{n.user.name}</strong>
                                             {n.type === 'friend_request'
                                                 ? ' sent you a friend request'
-                                                : ' missed call'}
+                                                : n.type === 'missed_call'
+                                                ? ' missed call'
+                                                : n.type === 'topic_like'
+                                                ? ' liked your topic'
+                                                : ' commented on your topic'}
                                         </div>
                                         <div className={styles.time} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            {n.type === 'friend_request' ? <User size={12} color="#14b8a6" /> : <PhoneCall size={12} color="#ef4444" />}
+                                            {n.type === 'friend_request' && <User size={12} color="#14b8a6" />}
+                                            {n.type === 'missed_call' && <PhoneCall size={12} color="#ef4444" />}
+                                            {n.type === 'topic_like' && <Heart size={12} color="#ef4444" fill="#ef4444" />}
+                                            {n.type === 'topic_comment' && <MessageSquare size={12} color="#0284c7" />}
                                             <span>{timeAgo(n.time)}</span>
                                         </div>
                                     </div>

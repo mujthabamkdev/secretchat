@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { MessageSquare, LogOut } from 'lucide-react';
+import { MessageSquare, LogOut, Flame } from 'lucide-react';
 import prisma from '@/lib/prisma';
 import styles from './layout.module.css';
 import IncomingCallBanner from '@/components/IncomingCallBanner';
@@ -29,7 +29,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
                         </span>
                     </Link>
                     <div className={styles.actions} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#14b8a6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Link href="/dashboard/topics" className={styles.navLink} style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Flame size={18} /> Topics
+                        </Link>
+                        <Link href="/dashboard/chats" className={styles.navLink} style={{ color: '#14b8a6', display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <MessageSquare size={18} /> Chats
                         </Link>
                         <NotificationBell />

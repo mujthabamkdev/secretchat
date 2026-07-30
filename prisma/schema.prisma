@@ -33,6 +33,10 @@ model User {
   
   conversations   Conversation[]
   messagesSent    Message[]      @relation("SentMessages")
+
+  topics          Topic[]
+  topicLikes      TopicLike[]
+  topicComments   TopicComment[]
 }
 
 model Report {
@@ -136,3 +140,46 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
 }
+
+model Topic {
+  id               String         @id @default(cuid())
+  authorId         String
+  content          String
+  commentsRestricted Boolean      @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  author           User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes            TopicLike[]
+  comments         TopicComment[]
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model TopicLike {
+  id        String   @id @default(cuid())
+  topicId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([topicId, userId])
+}
+
+model TopicComment {
+  id        String   @id @default(cuid())
+  topicId   String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@index([authorId])
+}
+

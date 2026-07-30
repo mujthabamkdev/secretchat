@@ -8,21 +8,20 @@ export async function GET() {
         const userId = cookieStore.get('userId')?.value;
         if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const [pendingRequests, missedCalls] = await Promise.all([
+        const [pendingRequests, missedCalls, topicLikes, topicComments] = await Promise.all([
             // Pending friend requests received
             prisma.friendRequest.findMany({
                 where: { receiverId: userId, status: 'PENDING' },
                 include: { sender: { select: { id: true, username: true, name: true, avatarUrl: true } } },
                 orderBy: { createdAt: 'desc' },
             }),
-            // Missed calls (ENDED calls where user was participant2 / receiver, lasted < 5 seconds or no endedAt)
+            // Missed calls
             prisma.callSession.findMany({
                 where: {
                     participant2Id: userId,
                     status: 'ENDED',
                     OR: [
                         { endedAt: null },
-                        // Calls that ended within 5 seconds of starting (missed/declined)
                     ],
                 },
                 include: {
@@ -31,6 +30,32 @@ export async function GET() {
                 orderBy: { startedAt: 'desc' },
                 take: 20,
             }),
+            // Likes on user's topics
+            prisma.topicLike.findMany({
+                where: {
+                    topic: { authorId: userId },
+                    userId: { not: userId }
+                },
+                include: {
+                    user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+                    topic: { select: { id: true, content: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 10
+            }),
+            // Comments on user's topics
+            prisma.topicComment.findMany({
+                where: {
+                    topic: { authorId: userId },
+                    authorId: { not: userId }
+                },
+                include: {
+                    author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+                    topic: { select: { id: true, content: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 10
+            })
         ]);
 
         // Filter missed calls: calls shorter than 10 seconds
@@ -52,6 +77,20 @@ export async function GET() {
                 type: 'missed_call' as const,
                 user: c.participant1,
                 time: c.startedAt.toISOString(),
+            })),
+            ...topicLikes.map(l => ({
+                id: `like-${l.id}`,
+                type: 'topic_like' as const,
+                user: l.user,
+                topicId: l.topic.id,
+                time: l.createdAt.toISOString(),
+            })),
+            ...topicComments.map(c => ({
+                id: `comment-${c.id}`,
+                type: 'topic_comment' as const,
+                user: c.author,
+                topicId: c.topic.id,
+                time: c.createdAt.toISOString(),
             })),
         ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
