@@ -17,6 +17,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { action } = await req.json();
 
     try {
+        const targetUser = await prisma.user.findUnique({ where: { id }, select: { email: true } });
+        if (targetUser?.email === 'secretchatreal@gmail.com') {
+            return NextResponse.json({ error: 'Super Admin cannot be modified, suspended, or deleted.' }, { status: 400 });
+        }
+
         if (action === 'revoke') {
             // Delete user and all related data
             await prisma.report.deleteMany({ where: { OR: [{ reporterId: id }, { reportedId: id }] } });

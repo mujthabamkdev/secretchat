@@ -354,16 +354,30 @@ function MessageBubble({ message, isOwn, onBurn, onDelete }: { message: Message,
             )}
 
             {isImage ? (
-                <img src={message.content!} alt="Chat media" style={{ maxWidth: '100%', borderRadius: '6px', maxHeight: '240px', objectFit: 'cover' }} />
+                <img src={message.content!} alt="Chat media" style={{ maxWidth: '100%', borderRadius: '6px', maxHeight: '240px', objectFit: 'cover', userSelect: 'none', WebkitUserSelect: 'none' }} onContextMenu={(e) => e.preventDefault()} />
             ) : (
-                <div style={{
-                    wordBreak: 'break-word',
-                    fontSize: '0.88rem',
-                    lineHeight: '1.38',
-                    paddingRight: isOwn ? '45px' : '38px',
-                    display: 'inline',
-                    fontWeight: isOwn ? 500 : 400
-                }}>
+                <div
+                    onCopy={(e) => {
+                        if (isEphemeral) {
+                            e.preventDefault();
+                            alert('Copying disappearing messages is strictly blocked for privacy protection.');
+                        }
+                    }}
+                    onContextMenu={(e) => {
+                        if (isEphemeral) e.preventDefault();
+                    }}
+                    style={{
+                        wordBreak: 'break-word',
+                        fontSize: '0.88rem',
+                        lineHeight: '1.38',
+                        paddingRight: isOwn ? '45px' : '38px',
+                        display: 'inline',
+                        fontWeight: isOwn ? 500 : 400,
+                        userSelect: isEphemeral ? 'none' : 'auto',
+                        WebkitUserSelect: isEphemeral ? 'none' : 'auto',
+                        MozUserSelect: isEphemeral ? 'none' : 'auto'
+                    }}
+                >
                     {message.content}
                 </div>
             )}

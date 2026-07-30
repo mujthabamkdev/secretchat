@@ -11,8 +11,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-    title: "SecretChat",
-    description: "Encrypted Private Audio Calls & Zero-Knowledge Messaging",
+    title: "SecretChat | Private Communication, Reimagined",
+    description: "End-to-End Encrypted Private Communication, Audio Calls & Zero-Knowledge Messaging",
     manifest: "/manifest.json",
     appleWebApp: {
         capable: true,

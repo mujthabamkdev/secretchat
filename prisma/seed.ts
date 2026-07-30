@@ -62,6 +62,7 @@ function generateUsers(count: number) {
             name: displayName,
             password: 'demo1234',
             avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+            bio: 'DUMMY_SEED_USER',
         });
     }
 
@@ -93,7 +94,7 @@ async function main() {
             chunk.map((u) =>
                 prisma.user.upsert({
                     where: { email: u.email },
-                    update: {},
+                    update: { bio: u.bio },
                     create: u,
                 })
             )

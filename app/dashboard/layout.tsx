@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma';
 import styles from './layout.module.css';
 import IncomingCallBanner from '@/components/IncomingCallBanner';
 import NotificationBell from '@/components/NotificationBell';
+import ScreenshotProtection from '@/components/ScreenshotProtection';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -16,7 +17,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const profileAvatar = user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'default'}`;
 
     return (
-        <div className={styles.container}>
+        <div className={`${styles.container} secure-chat-content`}>
+            <ScreenshotProtection />
             <IncomingCallBanner />
             <nav className={styles.nav}>
                 <Link href="/dashboard" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

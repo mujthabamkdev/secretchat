@@ -59,18 +59,20 @@ export default async function ChatPage({ params }: { params: Promise<{ friendId:
                 backdropFilter: 'blur(12px)',
                 flexShrink: 0
             }}>
-                <a href="/dashboard" style={{ marginRight: '16px', color: '#14b8a6', textDecoration: 'none', fontSize: '20px', display: 'flex', alignItems: 'center' }}>
+                <a href="/dashboard" style={{ marginRight: '16px', color: '#14b8a6', textDecoration: 'none', fontSize: '20px', display: 'flex', alignItems: 'center' }} title="Back to Dashboard">
                     &larr;
                 </a>
-                <img
-                    src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`}
-                    alt={friend.name}
-                    style={{ width: '36px', height: '36px', borderRadius: '50%', marginRight: '12px', border: '1px solid #1e293b' }}
-                />
-                <div>
-                    <h2 style={{ fontSize: '1rem', margin: 0, color: '#f8fafc', fontWeight: 700 }}>{friend.name}</h2>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>@{friend.username}</p>
-                </div>
+                <a href={`/dashboard/profile/${friend.id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }} title={`View ${friend.name}'s profile`}>
+                    <img
+                        src={friend.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${friend.username}`}
+                        alt={friend.name}
+                        style={{ width: '38px', height: '38px', borderRadius: '50%', marginRight: '12px', border: '1px solid #1e293b', objectFit: 'cover' }}
+                    />
+                    <div>
+                        <h2 style={{ fontSize: '1rem', margin: 0, color: '#f8fafc', fontWeight: 700, lineHeight: 1.2 }}>{friend.name}</h2>
+                        <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#64748b' }}>@{friend.username}</p>
+                    </div>
+                </a>
             </header>
 
             {/* Chat Room Container */}

@@ -37,6 +37,27 @@ body {
     display: none;
 }
 
+/* Anti-Screenshot & DRM Media Protection */
+.secure-blur {
+    filter: blur(25px) grayscale(100%) !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Disable user text & image selection */
+.secure-chat-content {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+/* Screen Recording Protection Overlay for Media/Canvas/Video elements */
+video, canvas {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
 a {
     color: inherit;
     text-decoration: none;

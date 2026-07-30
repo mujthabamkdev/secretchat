@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import styles from '../admin.module.css';
 
 interface User {
@@ -15,11 +15,20 @@ interface User {
     _count: { reportsReceived: number };
 }
 
+type SortField = 'name' | 'status' | 'reports' | 'createdAt';
+type SortOrder = 'asc' | 'desc';
+
 export default function AdminUsersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [sortField, setSortField] = useState<SortField>('createdAt');
+    const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+    // Multi-select state
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [batchLoading, setBatchLoading] = useState(false);
 
     const fetchUsers = async () => {
         const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}`);
@@ -44,31 +53,148 @@ export default function AdminUsersPage() {
         fetchUsers();
     };
 
-    const getStatus = (user: User) => {
-        if (user.blocked) return { label: 'Blocked', class: styles.badgeBlocked };
-        if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) return { label: 'Suspended', class: styles.badgeSuspended };
-        if (user.role === 'ADMIN') return { label: 'Admin', class: styles.badgeAdmin };
-        return { label: 'Active', class: styles.badgeActive };
+    const handleBatchAction = async (action: string) => {
+        if (selectedIds.size === 0) return;
+        if (action === 'revoke' && !confirm(`Permanently delete ${selectedIds.size} selected users and all their data?`)) return;
+
+        setBatchLoading(true);
+        try {
+            await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userIds: Array.from(selectedIds), action }),
+            });
+            setSelectedIds(new Set());
+            fetchUsers();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setBatchLoading(false);
+        }
     };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === sortedUsers.length && sortedUsers.length > 0) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(sortedUsers.map(u => u.id)));
+        }
+    };
+
+    const toggleSelectUser = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const getStatus = (user: User) => {
+        if (user.email === 'secretchatreal@gmail.com') return { label: 'Super Admin', class: styles.badgeAdmin, order: -1 };
+        if (user.blocked) return { label: 'Blocked', class: styles.badgeBlocked, order: 3 };
+        if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) return { label: 'Suspended', class: styles.badgeSuspended, order: 2 };
+        if (user.role === 'ADMIN') return { label: 'Admin', class: styles.badgeAdmin, order: 0 };
+        return { label: 'Active', class: styles.badgeActive, order: 1 };
+    };
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortField(field);
+            setSortOrder('asc');
+        }
+    };
+
+    const sortedUsers = useMemo(() => {
+        return [...users].sort((a, b) => {
+            let valA: any = a[sortField as keyof User];
+            let valB: any = b[sortField as keyof User];
+
+            if (sortField === 'name') {
+                valA = a.name.toLowerCase();
+                valB = b.name.toLowerCase();
+            } else if (sortField === 'status') {
+                valA = getStatus(a).order;
+                valB = getStatus(b).order;
+            } else if (sortField === 'reports') {
+                valA = a._count.reportsReceived;
+                valB = b._count.reportsReceived;
+            } else if (sortField === 'createdAt') {
+                valA = new Date(a.createdAt).getTime();
+                valB = new Date(b.createdAt).getTime();
+            }
+
+            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [users, sortField, sortOrder]);
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortField !== field) return <span style={{ opacity: 0.3, marginLeft: 4 }}>↕</span>;
+        return <span style={{ marginLeft: 4 }}>{sortOrder === 'asc' ? '↑' : '↓'}</span>;
+    };
+
+    const allSelected = sortedUsers.length > 0 && selectedIds.size === sortedUsers.length;
 
     return (
         <div>
             <h1 className={styles.pageTitle}>Users</h1>
             <p className={styles.pageSubtitle}>Manage all registered users</p>
 
-            <div className={styles.searchBar}>
+            <div className={styles.searchBar} style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
                     type="text"
                     placeholder="Search by username, email, or name..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     className={styles.searchInput}
+                    style={{ flex: 1, minWidth: '220px' }}
                 />
             </div>
 
+            {/* Batch Action Toolbar */}
+            {selectedIds.size > 0 && (
+                <div style={{
+                    background: 'rgba(20, 184, 166, 0.1)',
+                    border: '1px solid rgba(20, 184, 166, 0.3)',
+                    borderRadius: '12px',
+                    padding: '10px 16px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justify: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px'
+                }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#14b8a6' }}>
+                        ✓ {selectedIds.size} user{selectedIds.size > 1 ? 's' : ''} selected
+                    </span>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button disabled={batchLoading} onClick={() => handleBatchAction('suspend')} className={styles.actionBtn}>
+                            Suspend ({selectedIds.size})
+                        </button>
+                        <button disabled={batchLoading} onClick={() => handleBatchAction('block')} className={`${styles.actionBtn} ${styles.actionBtnDanger}`}>
+                            Block ({selectedIds.size})
+                        </button>
+                        <button disabled={batchLoading} onClick={() => handleBatchAction('unblock')} className={`${styles.actionBtn} ${styles.actionBtnSuccess}`}>
+                            Unblock ({selectedIds.size})
+                        </button>
+                        <button disabled={batchLoading} onClick={() => handleBatchAction('makeAdmin')} className={styles.actionBtn}>
+                            Make Admin ({selectedIds.size})
+                        </button>
+                        <button disabled={batchLoading} onClick={() => handleBatchAction('revoke')} className={`${styles.actionBtn} ${styles.actionBtnDanger}`}>
+                            Revoke ({selectedIds.size})
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {loading ? (
                 <p style={{ color: '#666' }}>Loading users...</p>
-            ) : users.length === 0 ? (
+            ) : sortedUsers.length === 0 ? (
                 <div className={styles.emptyState}>
                     <span className={styles.emptyIcon}>👥</span>
                     <p>No users found</p>
@@ -77,18 +203,46 @@ export default function AdminUsersPage() {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>User</th>
-                            <th>Status</th>
-                            <th>Reports</th>
-                            <th>Joined</th>
+                            <th style={{ width: '40px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    onChange={toggleSelectAll}
+                                    style={{ cursor: 'pointer', accentColor: '#14b8a6' }}
+                                />
+                            </th>
+                            <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                User {renderSortIndicator('name')}
+                            </th>
+                            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Status {renderSortIndicator('status')}
+                            </th>
+                            <th onClick={() => handleSort('reports')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Reports {renderSortIndicator('reports')}
+                            </th>
+                            <th onClick={() => handleSort('createdAt')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Joined {renderSortIndicator('createdAt')}
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map(user => {
+                        {sortedUsers.map(user => {
                             const status = getStatus(user);
+                            const isSelected = selectedIds.has(user.id);
+                            const isSuperAdmin = user.email === 'secretchatreal@gmail.com';
+
                             return (
-                                <tr key={user.id}>
+                                <tr key={user.id} style={{ background: isSelected ? 'rgba(20, 184, 166, 0.05)' : undefined }}>
+                                    <td>
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            disabled={isSuperAdmin}
+                                            onChange={() => !isSuperAdmin && toggleSelectUser(user.id)}
+                                            style={{ cursor: isSuperAdmin ? 'not-allowed' : 'pointer', accentColor: '#14b8a6', opacity: isSuperAdmin ? 0.3 : 1 }}
+                                        />
+                                    </td>
                                     <td>
                                         <a href={`/dashboard/profile/${user.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                             <div className={styles.userCell}>
@@ -112,7 +266,9 @@ export default function AdminUsersPage() {
                                     </td>
                                     <td style={{ color: '#666', fontSize: 13 }}>{new Date(user.createdAt).toLocaleDateString()}</td>
                                     <td>
-                                        {actionLoading === user.id ? (
+                                        {isSuperAdmin ? (
+                                            <span style={{ color: '#14b8a6', fontSize: 12, fontWeight: 600 }}>🔒 Protected Super Admin</span>
+                                        ) : actionLoading === user.id ? (
                                             <span style={{ color: '#666', fontSize: 12 }}>Processing...</span>
                                         ) : (
                                             <>

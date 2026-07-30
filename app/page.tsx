@@ -27,7 +27,7 @@ export default function Home() {
                 </div>
 
                 <h1 className={styles.heroTitle}>
-                    Private Audio Calls,{' '}
+                    Private Communication,{' '}
                     <span className={styles.gradientText}>Reimagined.</span>
                 </h1>
 

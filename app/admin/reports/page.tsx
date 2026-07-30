@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import styles from '../admin.module.css';
 
 interface ReportEntry {
@@ -25,10 +25,15 @@ interface ReportEntry {
     }>;
 }
 
+type SortField = 'name' | 'totalReports' | 'maxSeverity' | 'latestReason' | 'status';
+type SortOrder = 'asc' | 'desc';
+
 export default function AdminReportsPage() {
     const [reports, setReports] = useState<ReportEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState<string | null>(null);
+    const [sortField, setSortField] = useState<SortField>('totalReports');
+    const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
     useEffect(() => {
         fetch('/api/admin/reports')
@@ -46,6 +51,59 @@ export default function AdminReportsPage() {
         return map[severity] || '';
     };
 
+    const getSeverityRank = (severity: string) => {
+        const ranks: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+        return ranks[severity] || 0;
+    };
+
+    const getStatusOrder = (user: ReportEntry['user']) => {
+        if (user.blocked) return 3;
+        if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) return 2;
+        return 1;
+    };
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortField(field);
+            setSortOrder('desc');
+        }
+    };
+
+    const sortedReports = useMemo(() => {
+        return [...reports].sort((a, b) => {
+            let valA: any = a[sortField as keyof ReportEntry];
+            let valB: any = b[sortField as keyof ReportEntry];
+
+            if (sortField === 'name') {
+                valA = a.user.name.toLowerCase();
+                valB = b.user.name.toLowerCase();
+            } else if (sortField === 'totalReports') {
+                valA = a.totalReports;
+                valB = b.totalReports;
+            } else if (sortField === 'maxSeverity') {
+                valA = getSeverityRank(a.maxSeverity);
+                valB = getSeverityRank(b.maxSeverity);
+            } else if (sortField === 'latestReason') {
+                valA = (a.latestReason || '').toLowerCase();
+                valB = (b.latestReason || '').toLowerCase();
+            } else if (sortField === 'status') {
+                valA = getStatusOrder(a.user);
+                valB = getStatusOrder(b.user);
+            }
+
+            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [reports, sortField, sortOrder]);
+
+    const renderSortIndicator = (field: SortField) => {
+        if (sortField !== field) return <span style={{ opacity: 0.3, marginLeft: 4 }}>↕</span>;
+        return <span style={{ marginLeft: 4 }}>{sortOrder === 'asc' ? '↑' : '↓'}</span>;
+    };
+
     return (
         <div>
             <h1 className={styles.pageTitle}>Reports</h1>
@@ -53,7 +111,7 @@ export default function AdminReportsPage() {
 
             {loading ? (
                 <p style={{ color: '#666' }}>Loading reports...</p>
-            ) : reports.length === 0 ? (
+            ) : sortedReports.length === 0 ? (
                 <div className={styles.emptyState}>
                     <span className={styles.emptyIcon}>✅</span>
                     <p>No reports yet — all clear!</p>
@@ -62,16 +120,26 @@ export default function AdminReportsPage() {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>Reported User</th>
-                            <th>Total Reports</th>
-                            <th>Max Severity</th>
+                            <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Reported User {renderSortIndicator('name')}
+                            </th>
+                            <th onClick={() => handleSort('totalReports')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Total Reports {renderSortIndicator('totalReports')}
+                            </th>
+                            <th onClick={() => handleSort('maxSeverity')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Max Severity {renderSortIndicator('maxSeverity')}
+                            </th>
                             <th>Severity Breakdown</th>
-                            <th>Latest Reason</th>
-                            <th>Status</th>
+                            <th onClick={() => handleSort('latestReason')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Latest Reason {renderSortIndicator('latestReason')}
+                            </th>
+                            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                Status {renderSortIndicator('status')}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {reports.map(entry => (
+                        {sortedReports.map(entry => (
                             <>
                                 <tr key={entry.user.id} onClick={() => setExpanded(expanded === entry.user.id ? null : entry.user.id)} style={{ cursor: 'pointer' }}>
                                     <td>
