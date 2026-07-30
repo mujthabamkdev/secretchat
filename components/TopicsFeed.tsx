@@ -389,13 +389,13 @@ export default function TopicsFeed() {
                             key={topic.id}
                             onClick={() => openCommentsModal(topic)}
                             style={{
-                                background: '#111827',
-                                border: '1px solid #1e293b',
+                                background: 'var(--surface)',
+                                border: '1px solid var(--border)',
                                 borderRadius: '16px',
                                 padding: '16px',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                boxShadow: '0 4px 14px rgba(0,0,0,0.18)'
                             }}
                         >
                             {/* Author & Header */}

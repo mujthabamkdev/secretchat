@@ -53,10 +53,10 @@ export default async function ChatPage({ params }: { params: Promise<{ friendId:
                 width: '100%',
                 maxWidth: '480px',
                 height: '100dvh',
-                background: '#090d16',
-                borderLeft: '1px solid #1e293b',
-                borderRight: '1px solid #1e293b',
-                boxShadow: '0 0 40px rgba(0, 0, 0, 0.6)',
+                background: 'var(--background)',
+                borderLeft: '1px solid var(--border)',
+                borderRight: '1px solid var(--border)',
+                boxShadow: '0 0 40px rgba(0, 0, 0, 0.4)',
                 position: 'relative'
             }}>
             {/* Header */}
