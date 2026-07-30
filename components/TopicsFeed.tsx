@@ -253,14 +253,15 @@ export default function TopicsFeed() {
                         color: '#050811',
                         border: 'none',
                         borderRadius: '20px',
-                        padding: '8px 16px',
+                        padding: '8px 18px',
                         fontSize: '0.85rem',
-                        fontWeight: 700,
+                        fontWeight: 800,
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        boxShadow: '0 2px 10px rgba(20, 184, 166, 0.3)'
+                        boxShadow: '0 2px 14px rgba(163, 230, 53, 0.35)',
+                        transition: 'all 0.2s'
                     }}
                 >
                     <Sparkles size={16} />
@@ -358,12 +359,12 @@ export default function TopicsFeed() {
                                     disabled={!newContent.trim() || submitting}
                                     style={{
                                         background: newContent.trim() ? 'var(--brand-gradient)' : '#1e293b',
-                                        color: '#ffffff',
+                                        color: newContent.trim() ? '#050811' : '#64748b',
                                         border: 'none',
                                         borderRadius: '20px',
                                         padding: '8px 18px',
                                         fontSize: '0.85rem',
-                                        fontWeight: 700,
+                                        fontWeight: 800,
                                         cursor: newContent.trim() && !submitting ? 'pointer' : 'not-allowed'
                                     }}
                                 >
