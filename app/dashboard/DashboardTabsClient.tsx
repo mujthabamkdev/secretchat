@@ -84,8 +84,8 @@ export default function DashboardTabsClient({
                         borderRadius: '12px',
                         border: 'none',
                         background: activeTab === 'topics' ? 'var(--brand-gradient)' : 'transparent',
-                        color: activeTab === 'topics' ? '#ffffff' : '#94a3b8',
-                        fontWeight: 700,
+                        color: activeTab === 'topics' ? '#050811' : '#94a3b8',
+                        fontWeight: 800,
                         fontSize: '0.9rem',
                         cursor: 'pointer',
                         display: 'flex',
@@ -107,8 +107,8 @@ export default function DashboardTabsClient({
                         borderRadius: '12px',
                         border: 'none',
                         background: activeTab === 'connections' ? 'var(--brand-gradient)' : 'transparent',
-                        color: activeTab === 'connections' ? '#ffffff' : '#94a3b8',
-                        fontWeight: 700,
+                        color: activeTab === 'connections' ? '#050811' : '#94a3b8',
+                        fontWeight: 800,
                         fontSize: '0.9rem',
                         cursor: 'pointer',
                         display: 'flex',
@@ -122,8 +122,8 @@ export default function DashboardTabsClient({
                     <span>My Connections</span>
                     {friends.length > 0 && (
                         <span style={{
-                            background: activeTab === 'connections' ? 'rgba(255,255,255,0.25)' : 'rgba(20, 184, 166, 0.2)',
-                            color: activeTab === 'connections' ? '#fff' : '#14b8a6',
+                            background: activeTab === 'connections' ? 'rgba(5,8,17,0.2)' : 'rgba(163, 230, 53, 0.2)',
+                            color: activeTab === 'connections' ? '#050811' : '#a3e635',
                             padding: '2px 7px',
                             borderRadius: '10px',
                             fontSize: '0.72rem',
