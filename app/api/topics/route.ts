@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { cookies } from 'next/headers';
 
 // GET /api/topics - List all topics with pagination/cursor ordering by createdAt DESC (newest at top)
 export async function GET(req: Request) {
+    const db = new PrismaClient();
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get('userId')?.value;
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
         const cursor = searchParams.get('cursor');
         const limit = 10;
 
-        const topics = await prisma.topic.findMany({
+        const topics = await db.topic.findMany({
             take: limit + 1,
             ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
             orderBy: { createdAt: 'desc' },
@@ -49,12 +50,13 @@ export async function GET(req: Request) {
     } catch (error) {
         console.error('Fetch topics error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    } finally {
+        await db.$disconnect();
     }
 }
 
 // POST /api/topics - Create a new topic
 export async function POST(req: Request) {
-    const { PrismaClient } = await import('@prisma/client');
     const db = new PrismaClient();
     try {
         const cookieStore = await cookies();
