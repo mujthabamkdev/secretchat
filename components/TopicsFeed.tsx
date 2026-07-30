@@ -245,11 +245,7 @@ export default function TopicsFeed() {
     return (
         <div style={{ width: '100%' }}>
             {/* Top Action Header Bar */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>Public Topics</h2>
-                    <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0' }}>Explore secret topics shared by the community</p>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '16px' }}>
                 <button
                     onClick={() => setShowCreateModal(true)}
                     style={{
